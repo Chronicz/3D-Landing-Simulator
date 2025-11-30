@@ -16,18 +16,9 @@ Key Features
 
 Tech Stack
 
-Unity / Unreal / Three.js (adjust if needed)
+openFrameworks
 
-C# / JavaScript / C++ (adjust if needed)
+C++
 
-Custom physics & control logic
+Maya
 
-Use Cases
-
-Educational demos
-
-Gameplay prototype
-
-Physics experimentation
-
-Aerospace landing simulations
