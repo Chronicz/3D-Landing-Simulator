@@ -103,7 +103,8 @@ obj/msys2/Release/src/ofApp.o: src/ofApp.cpp src/ofApp.h \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpMeshHelper.h \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpTexture.h \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpAnimation.h \
- src/Octree.h src/box.h src/vector3.h src/ray.h src/Util.h
+ src/Octree.h src/box.h src/vector3.h src/ray.h src/SpaceLander.h \
+ src/Util.h
 src/ofApp.h:
 C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/libs/openFrameworks/ofMain.h:
 C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/libs/openFrameworks/utils/ofConstants.h:
@@ -213,4 +214,5 @@ src/Octree.h:
 src/box.h:
 src/vector3.h:
 src/ray.h:
+src/SpaceLander.h:
 src/Util.h:
