@@ -11,6 +11,12 @@
 
 
 #include "Octree.h"
+#include <glm/glm.hpp>
+#include <glm/gtx/intersect.hpp>
+#include <cfloat>
+#include <glm/glm.hpp>
+#include <glm/gtx/intersect.hpp>
+#include <cfloat>
  
 
 
@@ -262,6 +268,103 @@ void Octree::draw(TreeNode & node, int numLevels, int level) {
 void Octree::drawLeafNodes(TreeNode & node) {
 
 
+}
+
+// Ray-triangle intersection using Möller-Trumbore algorithm
+// Returns true if ray intersects a triangle in the mesh, and fills in intersectionPoint, normal, and distance
+bool Octree::intersectRayMesh(const Ray &ray, const TreeNode &node, glm::vec3 &intersectionPoint, glm::vec3 &normal, float &distance) {
+	bool foundIntersection = false;
+	float closestDistance = FLT_MAX;
+	glm::vec3 closestPoint;
+	glm::vec3 closestNormal;
+
+	// Check if ray intersects this node's bounding box first
+	if (!node.box.intersect(ray, 0, 10000)) {
+		return false;
+	}
+
+	// If this is a leaf node, check triangles
+	if (node.children.empty()) {
+		// Check all triangles in the mesh that might be in this node
+		// We'll check all triangles and see if they intersect the ray and are in this node's box
+		for (int j = 0; j < mesh.getNumIndices(); j += 3) {
+			int idx0 = mesh.getIndex(j);
+			int idx1 = mesh.getIndex(j + 1);
+			int idx2 = mesh.getIndex(j + 2);
+
+			// Get triangle vertices
+			ofVec3f v0 = mesh.getVertex(idx0);
+			ofVec3f v1 = mesh.getVertex(idx1);
+			ofVec3f v2 = mesh.getVertex(idx2);
+
+			// Check if triangle is in this node's box (at least one vertex)
+			bool inBox = false;
+			for (int k = 0; k < node.points.size(); k++) {
+				if (node.points[k] == idx0 || node.points[k] == idx1 || node.points[k] == idx2) {
+					inBox = true;
+					break;
+				}
+			}
+			if (!inBox) continue;
+
+			// Convert to glm::vec3
+			glm::vec3 p0(v0.x, v0.y, v0.z);
+			glm::vec3 p1(v1.x, v1.y, v1.z);
+			glm::vec3 p2(v2.x, v2.y, v2.z);
+
+			// Möller-Trumbore ray-triangle intersection
+			glm::vec3 edge1 = p1 - p0;
+			glm::vec3 edge2 = p2 - p0;
+			glm::vec3 rayDir = glm::vec3(ray.direction.x(), ray.direction.y(), ray.direction.z());
+			glm::vec3 h = glm::cross(rayDir, edge2);
+			float a = glm::dot(edge1, h);
+
+			if (abs(a) < 0.0001f) continue; // Ray is parallel to triangle
+
+			float f = 1.0f / a;
+			glm::vec3 s = glm::vec3(ray.origin.x(), ray.origin.y(), ray.origin.z()) - p0;
+			float u = f * glm::dot(s, h);
+
+			if (u < 0.0f || u > 1.0f) continue;
+
+			glm::vec3 q = glm::cross(s, edge1);
+			float v = f * glm::dot(rayDir, q);
+
+			if (v < 0.0f || u + v > 1.0f) continue;
+
+			float t = f * glm::dot(edge2, q);
+
+			if (t > 0.0001f && t < closestDistance) {
+				closestDistance = t;
+				closestPoint = glm::vec3(ray.origin.x(), ray.origin.y(), ray.origin.z()) + rayDir * t;
+				closestNormal = glm::normalize(glm::cross(edge1, edge2));
+				foundIntersection = true;
+			}
+		}
+	} else {
+		// Recursively check children
+		for (int i = 0; i < node.children.size(); i++) {
+			glm::vec3 childPoint;
+			glm::vec3 childNormal;
+			float childDistance;
+			if (intersectRayMesh(ray, node.children[i], childPoint, childNormal, childDistance)) {
+				if (childDistance < closestDistance) {
+					closestDistance = childDistance;
+					closestPoint = childPoint;
+					closestNormal = childNormal;
+					foundIntersection = true;
+				}
+			}
+		}
+	}
+
+	if (foundIntersection) {
+		intersectionPoint = closestPoint;
+		normal = closestNormal;
+		distance = closestDistance;
+	}
+
+	return foundIntersection;
 }
 
 

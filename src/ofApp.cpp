@@ -12,6 +12,7 @@
 
 #include "ofApp.h"
 #include "Util.h"
+#include <cfloat>
 
 
 //--------------------------------------------------------------
@@ -97,7 +98,7 @@ void ofApp::setup(){
 //
 void ofApp::update() {
 	// Update SpaceLander controls based on key states
-	if (bLanderLoaded) {
+	if (bLanderLoaded && !bLanded) {  // Only update if not landed
 		// Main thrust (Space bar)
 		spaceLander.setThrust(bThrustKey ? 1.0f : 0.0f);
 		
@@ -170,6 +171,30 @@ void ofApp::update() {
 		Vector3(max.x, max.y, max.z)
 	);
 
+	// Ray-based altitude detection - cast ray downward from bottom of lander
+	// Always update altitude (even when landed) for display purposes
+	if (bLanderLoaded) {
+		// Get bottom of lander bounding box
+		Vector3 boxMin = landerBounds.min();
+		Vector3 rayStart = Vector3(boxMin.x() + (landerBounds.max().x() - boxMin.x()) * 0.5f, 
+		                           boxMin.y(), 
+		                           boxMin.z() + (landerBounds.max().z() - boxMin.z()) * 0.5f);
+		
+		// Cast ray downward from bottom center of lander
+		Ray altitudeRay(rayStart, Vector3(0, -1, 0));
+		
+		glm::vec3 intersectionPoint;
+		glm::vec3 normal;
+		float distance;
+		
+		if (octree.intersectRayMesh(altitudeRay, octree.root, intersectionPoint, normal, distance)) {
+			altitude = distance;  // Distance from bottom of lander to terrain
+			groundNormal = normal;
+		} else {
+			altitude = -1.0f;  // No ground detected
+		}
+	}
+
 	// Free camera movement with arrow keys
 	if (bArrowUp || bArrowDown || bArrowLeft || bArrowRight) {
 		glm::vec3 pos = cam.getPosition();
@@ -212,18 +237,111 @@ void ofApp::update() {
 		cam.setPosition(pos + moveDir);
 	}
 
-	// if lander loaded in, check for collision with terrain
-	if (resolvingCollision) {
-		glm::vec3 pos = lander.getPosition();
-
-		glm::vec3 back = cam.getZAxis() * 0.5f; 
-		lander.setPosition(pos.x + back.x, pos.y + back.y, pos.z + back.z);
+	// Collision detection and resolution with terrain
+	if (bLanderLoaded && !bLanded) {  // Only check collisions if not already landed
 		colBoxList.clear();
 		octree.intersect(landerBounds, octree.root, colBoxList);
-
-		if (colBoxList.size() < 10) {
-			resolvingCollision = false;
+		
+		bCollisionDetected = (colBoxList.size() > 0);
+		
+		if (bCollisionDetected) {
+			// Check if lander has landed (low velocity and on ground)
+			float velocityMagnitude = glm::length(spaceLander.velocity);
+			if (velocityMagnitude < 0.5f && altitude < 0.5f) {
+				// Lander has landed - make it static
+				bLanded = true;
+				spaceLander.velocity = glm::vec3(0, 0, 0);
+				spaceLander.angularVelocity = glm::vec3(0, 0, 0);
+				// Position is already set, just keep it static - no more position corrections
+			} else {
+				// Collision detected but not fully landed yet - resolve with position correction
+				// Find the closest point on terrain to lander
+				
+				// Cast multiple rays from lander bounding box to find penetration depth
+				float minPenetration = FLT_MAX;
+				glm::vec3 collisionNormal(0, 1, 0);  // Default to upward
+				glm::vec3 collisionPoint;
+				
+				// Check bottom corners and center of lander bounding box
+				Vector3 boxMin = landerBounds.min();
+				Vector3 boxMax = landerBounds.max();
+				Vector3 boxCenter = landerBounds.center();
+				
+				// Test points on bottom of bounding box (cast rays upward from below to find terrain)
+				Vector3 testPoints[5] = {
+					boxCenter,  // Center
+					Vector3(boxMin.x(), boxMin.y(), boxMin.z()),  // Bottom corner
+					Vector3(boxMax.x(), boxMin.y(), boxMin.z()),  // Bottom corner
+					Vector3(boxMin.x(), boxMin.y(), boxMax.z()),  // Bottom corner
+					Vector3(boxMax.x(), boxMin.y(), boxMax.z())   // Bottom corner
+				};
+				
+				for (int i = 0; i < 5; i++) {
+					// Cast ray downward from above the test point to find terrain
+					Vector3 rayStart = testPoints[i] + Vector3(0, 10, 0);  // Start 10 units above
+					Ray testRay(rayStart, Vector3(0, -1, 0));
+					glm::vec3 hitPoint;
+					glm::vec3 hitNormal;
+					float hitDistance;
+					
+					if (octree.intersectRayMesh(testRay, octree.root, hitPoint, hitNormal, hitDistance)) {
+						// Check if terrain is above the test point (penetration)
+						float terrainHeight = hitPoint.y;
+						float testPointHeight = testPoints[i].y();
+						
+						if (terrainHeight > testPointHeight) {
+							float penetration = terrainHeight - testPointHeight;
+							if (penetration < minPenetration) {
+								minPenetration = penetration;
+								collisionNormal = hitNormal;
+								collisionPoint = hitPoint;
+							}
+						}
+					}
+				}
+				
+				// If we found a penetration, resolve the collision
+				if (minPenetration < FLT_MAX && minPenetration > 0) {
+					// Calculate collision resolution
+					// Push lander up by penetration depth plus a small margin to prevent sinking
+					float pushDistance = minPenetration + 0.01f;
+					
+					// Ensure normal points upward (away from terrain)
+					if (glm::dot(collisionNormal, glm::vec3(0, 1, 0)) < 0) {
+						collisionNormal = -collisionNormal;
+					}
+					
+					// Move lander up along the collision normal to resolve penetration
+					glm::vec3 pushVector = collisionNormal * pushDistance;
+					spaceLander.position += pushVector;
+					
+					// For landing simulator: stop downward velocity and apply strong damping
+					// Calculate velocity component along collision normal
+					float velocityAlongNormal = glm::dot(spaceLander.velocity, collisionNormal);
+					
+					// If moving into the terrain (downward), stop that component
+					if (velocityAlongNormal < 0) {
+						// Remove velocity component into terrain (no bounce, just stop)
+						glm::vec3 velocityIntoTerrain = collisionNormal * velocityAlongNormal;
+						spaceLander.velocity -= velocityIntoTerrain;
+						
+						// Apply strong damping to horizontal velocity on contact (friction)
+						glm::vec3 horizontalVelocity = spaceLander.velocity - (collisionNormal * glm::dot(spaceLander.velocity, collisionNormal));
+						spaceLander.velocity -= horizontalVelocity * 0.7f;  // Friction damping
+					}
+					
+					// Update lander model position
+					lander.setPosition(spaceLander.position.x, spaceLander.position.y, spaceLander.position.z);
+				}
+			}
 		}
+	}
+	
+	// If landed, ensure position stays static (no physics updates)
+	if (bLanded) {
+		spaceLander.velocity = glm::vec3(0, 0, 0);
+		spaceLander.angularVelocity = glm::vec3(0, 0, 0);
+		// Position remains at last set value
 	}
 }
 //--------------------------------------------------------------
@@ -278,11 +396,11 @@ void ofApp::draw() {
 			lander.setPosition(landerPos.x, landerPos.y, landerPos.z);  // Restore position
 			ofPopMatrix();
 
-			// draw colliding boxes
-			ofSetColor(ofColor::yellow);
-			for (auto & b : colBoxList) {
-				Octree::drawBox(b);
-			}
+			// draw colliding boxes (disabled - no yellow highlights)
+			// ofSetColor(ofColor::yellow);
+			// for (auto & b : colBoxList) {
+			// 	Octree::drawBox(b);
+			// }
 
 			if (!bTerrainSelected) drawAxis(lander.getPosition());
 			if (bDisplayBBoxes) {
@@ -364,6 +482,33 @@ void ofApp::draw() {
 
 	ofPopMatrix();
 	cam.end();
+
+	// Display altitude and collision info on screen
+	if (bLanderLoaded) {
+		ofSetColor(ofColor::white);
+		string altitudeText = "Altitude: ";
+		if (altitude >= 0) {
+			altitudeText += ofToString(altitude, 2) + " units";
+		} else {
+			altitudeText += "N/A";
+		}
+		ofDrawBitmapString(altitudeText, 20, 30);
+		
+		if (bCollisionDetected) {
+			ofSetColor(ofColor::red);
+			ofDrawBitmapString("COLLISION DETECTED!", 20, 50);
+		}
+		
+		if (bLanded) {
+			ofSetColor(ofColor::green);
+			ofDrawBitmapString("LANDED - STATIC", 20, 90);
+		}
+		
+		// Display velocity info
+		ofSetColor(ofColor::yellow);
+		string velocityText = "Velocity: " + ofToString(glm::length(spaceLander.velocity), 2) + " units/s";
+		ofDrawBitmapString(velocityText, 20, 70);
+	}
 }
 
 

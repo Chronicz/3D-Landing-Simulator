@@ -29,6 +29,7 @@ public:
 	void subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int level);
 	bool intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
 	bool intersect(const Box &, TreeNode & node, vector<Box> & boxListRtn);
+	bool intersectRayMesh(const Ray &ray, const TreeNode &node, glm::vec3 &intersectionPoint, glm::vec3 &normal, float &distance);
 	void draw(TreeNode & node, int numLevels, int level);
 	void draw(int numLevels, int level) {
 		draw(root, numLevels, level);
