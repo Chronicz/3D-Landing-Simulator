@@ -45,6 +45,21 @@ void ofApp::setup(){
 
 	mars.setScaleNormalization(false);
 
+	// Load lander model
+	if (lander.loadModel("lander.obj")) {
+		bLanderLoaded = true;
+		lander.setScaleNormalization(false);
+		lander.setPosition(0, 30, 0);  // Position 30 units above origin
+		cout << "Lander loaded. Number of meshes: " << lander.getNumMeshes() << endl;
+		bboxList.clear();
+		for (int i = 0; i < lander.getMeshCount(); i++) {
+			bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
+		}
+	}
+	else {
+		cout << "Error: Could not load lander.obj" << endl;
+	}
+
 	// create sliders for testing
 	//
 	gui.setup();
@@ -163,7 +178,14 @@ void ofApp::draw() {
 		mars.drawWireframe();
 		ofPopMatrix();
 		if (bLanderLoaded) {
+			ofPushMatrix();
+			ofVec3f landerPos = lander.getPosition();
+			ofTranslate(landerPos);
+			ofRotateDeg(180, 1, 0, 0);  // Flip lander upside down
+			lander.setPosition(0, 0, 0);  // Temporarily set to origin for drawing
 			lander.drawWireframe();
+			lander.setPosition(landerPos.x, landerPos.y, landerPos.z);  // Restore position
+			ofPopMatrix();
 			if (!bTerrainSelected) drawAxis(lander.getPosition());
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
@@ -176,7 +198,14 @@ void ofApp::draw() {
 		ofPopMatrix();
 		ofMesh mesh;
 		if (bLanderLoaded) {
+			ofPushMatrix();
+			ofVec3f landerPos = lander.getPosition();
+			ofTranslate(landerPos);
+			ofRotateDeg(180, 1, 0, 0);  // Flip lander upside down
+			lander.setPosition(0, 0, 0);  // Temporarily set to origin for drawing
 			lander.drawFaces();
+			lander.setPosition(landerPos.x, landerPos.y, landerPos.z);  // Restore position
+			ofPopMatrix();
 
 			// draw colliding boxes
 			ofSetColor(ofColor::yellow);
