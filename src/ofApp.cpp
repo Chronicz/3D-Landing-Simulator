@@ -45,6 +45,12 @@ void ofApp::setup(){
 
 	mars.setScaleNormalization(false);
 
+	// Load Lander
+	lander.loadModel("geo/lander.obj");
+	lander.setScaleNormalization(false);
+	lander.setPosition(0, 100, 0);
+	bLanderLoaded = true;
+	
 	// create sliders for testing
 	//
 	gui.setup();
