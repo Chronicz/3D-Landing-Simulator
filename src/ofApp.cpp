@@ -18,12 +18,22 @@
 // setup scene, lighting, state and load geometry
 //
 void ofApp::setup(){
-	bWireframe = false;
+	bWireframe = true;  // Default to wireframe mode for debugging
 	bDisplayPoints = false;
 	bAltKeyDown = false;
 	bCtrlKeyDown = false;
 	bLanderLoaded = false;
 	bTerrainSelected = true;
+	
+	// Initialize camera movement controls
+	bArrowUp = false;
+	bArrowDown = false;
+	bArrowLeft = false;
+	bArrowRight = false;
+	bMoveUp = false;
+	bMoveDown = false;
+	cameraMoveSpeed = 0.5f;  // Movement speed per frame
+	
 //	ofSetWindowShape(1024, 768);
 	cam.setDistance(10);
 	cam.setNearClip(.1);
@@ -36,6 +46,13 @@ void ofApp::setup(){
 	// setup rudimentary lighting 
 	//
 	initLightingAndMaterials();
+	
+	// Setup the ofLight object as bright directional light from above
+	light.setDirectional();
+	light.setOrientation(ofVec3f(0, -1, 0));  // Pointing down
+	light.setDiffuseColor(ofColor(255, 255, 255));
+	light.setAmbientColor(ofColor(255, 255, 255));  // Maximum ambient
+	light.enable();
 
 	// can switch between terrains here - just commented out one if not used
 	// probably a better way to do this but idk im too lazy...
@@ -45,10 +62,10 @@ void ofApp::setup(){
 
 	mars.setScaleNormalization(false);
 
-	// Load Lander
-	lander.loadModel("geo/lander.obj");
+	// Load Lander from objects folder - positioned statically above terrain for lighting test
+	lander.loadModel("objects/lander.obj");
 	lander.setScaleNormalization(false);
-	lander.setPosition(0, 100, 0);
+	lander.setPosition(0, 50, 0);  // Hovering above terrain at y=50
 	bLanderLoaded = true;
 	
 	// create sliders for testing
@@ -83,32 +100,68 @@ void ofApp::setup(){
 // incrementally update scene (animation)
 //
 void ofApp::update() {
-	// Update lander bounding box to current position
-	/* had to update position due to problem in collision resolution - landerbounds would hold initial position when dragged into project and not update as lander moved
-	resulting in the ship moving infinitely upwards even with the bounding box not colliding with more than 10 boxes anymore */
-	ofVec3f min = lander.getSceneMin() + lander.getPosition();
-	ofVec3f max = lander.getSceneMax() + lander.getPosition();
+	// Lander is static for lighting test - no position updates
+	// Keep lander at fixed position above terrain
+	if (bLanderLoaded) {
+		lander.setPosition(0, 50, 0);  // Keep lander static at y=50
+		
+		// Update bounding box for static lander
+		ofVec3f min = lander.getSceneMin() + lander.getPosition();
+		ofVec3f max = lander.getSceneMax() + lander.getPosition();
 
-	landerBounds = Box(
-		Vector3(min.x, min.y, min.z),
-		Vector3(max.x, max.y, max.z)
-	);
-
-
-
-	// if lander loaded in, check for collision with terrain
-	if (resolvingCollision) {
-		glm::vec3 pos = lander.getPosition();
-
-		glm::vec3 back = cam.getZAxis() * 0.5f; 
-		lander.setPosition(pos.x + back.x, pos.y + back.y, pos.z + back.z);
-		colBoxList.clear();
-		octree.intersect(landerBounds, octree.root, colBoxList);
-
-		if (colBoxList.size() < 10) {
-			resolvingCollision = false;
-		}
+		landerBounds = Box(
+			Vector3(min.x, min.y, min.z),
+			Vector3(max.x, max.y, max.z)
+		);
 	}
+
+	// Camera movement using arrow keys
+	if (bArrowUp || bArrowDown || bArrowLeft || bArrowRight || bMoveUp || bMoveDown) {
+		// Get camera's current orientation vectors
+		ofVec3f forward = cam.getZAxis();  // Forward direction (where camera is looking)
+		ofVec3f right = cam.getXAxis();    // Right direction
+		ofVec3f up = cam.getYAxis();       // Up direction
+		
+		// Normalize vectors
+		forward.normalize();
+		right.normalize();
+		up.normalize();
+		
+		// Calculate movement direction
+		ofVec3f moveDir(0, 0, 0);
+		
+		if (bArrowUp) {
+			// Move forward (in the direction camera is looking)
+			moveDir += forward * cameraMoveSpeed;
+		}
+		if (bArrowDown) {
+			// Move backward
+			moveDir -= forward * cameraMoveSpeed;
+		}
+		if (bArrowLeft) {
+			// Strafe left
+			moveDir -= right * cameraMoveSpeed;
+		}
+		if (bArrowRight) {
+			// Strafe right
+			moveDir += right * cameraMoveSpeed;
+		}
+		if (bMoveUp) {
+			// Move up vertically
+			moveDir += up * cameraMoveSpeed;
+		}
+		if (bMoveDown) {
+			// Move down vertically
+			moveDir -= up * cameraMoveSpeed;
+		}
+		
+		// Get current camera position and apply movement
+		ofVec3f currentPos = cam.getPosition();
+		cam.setPosition(currentPos + moveDir);
+	}
+
+	// Lander is static - no collision resolution needed for lighting test
+	// Disabled collision resolution to keep lander static
 }
 //--------------------------------------------------------------
 void ofApp::draw() {
@@ -121,59 +174,77 @@ void ofApp::draw() {
 
 	cam.begin();
 	ofPushMatrix();
+	
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
 		ofSetColor(ofColor::slateGray);
+		// Flip terrain upside down - rotate 180 degrees around X axis
+		ofPushMatrix();
+		ofRotate(180, 1, 0, 0);
 		mars.drawWireframe();
+		ofPopMatrix();
+		// Draw static lander in wireframe mode - flipped upside down
 		if (bLanderLoaded) {
+			ofPushMatrix();
+			ofTranslate(0, 50, 0);  // Move to lander position
+			ofRotate(180, 1, 0, 0);  // Flip lander upside down (rotates around current position)
+			lander.setPosition(0, 0, 0);  // Draw at origin since we've translated
 			lander.drawWireframe();
-			if (!bTerrainSelected) drawAxis(lander.getPosition());
+			ofPopMatrix();
+			lander.setPosition(0, 50, 0);  // Reset position
+			drawAxis(ofVec3f(0, 50, 0));
 		}
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
 	else {
-		ofEnableLighting();              // shaded mode
+		// Enable lighting - simple global illumination system
+		ofEnableLighting();
+		glEnable(GL_LIGHTING);
+		glEnable(GL_LIGHT0);
+		
+		// Set up directional light from above - pointing straight down
+		float lightDir[] = { 0.0, -1.0, 0.0, 0.0 };
+		glLightfv(GL_LIGHT0, GL_POSITION, lightDir);
+		
+		// Update ofLight
+		light.setDirectional();
+		light.setOrientation(ofVec3f(0, -1, 0));
+		light.enable();
+		
+		// Set materials to maximum brightness - ensures everything is visible
+		// High ambient = no dark areas, everything is lit
+		float mat_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		float mat_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+		float mat_specular[] = { 0.0f, 0.0f, 0.0f, 1.0f };
+		float mat_shininess[] = { 0.0f };
+		
+		glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+		glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+		
+		// Enable color material
+		glEnable(GL_COLOR_MATERIAL);
+		glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+		
+		// Flip terrain upside down - rotate 180 degrees around X axis
+		ofPushMatrix();
+		ofRotate(180, 1, 0, 0);
 		mars.drawFaces();
-		ofMesh mesh;
+		ofPopMatrix();
+		// Draw static lander for lighting test - always visible, flipped upside down
 		if (bLanderLoaded) {
+			// Ensure lander is at fixed position
+			ofPushMatrix();
+			ofTranslate(0, 50, 0);  // Move to lander position
+			ofRotate(180, 1, 0, 0);  // Flip lander upside down (rotates around current position)
+			lander.setPosition(0, 0, 0);  // Draw at origin since we've translated
 			lander.drawFaces();
-
-			// draw colliding boxes
-			ofSetColor(ofColor::yellow);
-			for (auto & b : colBoxList) {
-				Octree::drawBox(b);
-			}
-
-			if (!bTerrainSelected) drawAxis(lander.getPosition());
-			if (bDisplayBBoxes) {
-				ofNoFill();
-				ofSetColor(ofColor::white);
-				for (int i = 0; i < lander.getNumMeshes(); i++) {
-					ofPushMatrix();
-					ofMultMatrix(lander.getModelMatrix());
-					ofRotate(-90, 1, 0, 0);
-					Octree::drawBox(bboxList[i]);
-					ofPopMatrix();
-				}
-			}
-
-			if (bLanderSelected) {
-
-				ofVec3f min = lander.getSceneMin() + lander.getPosition();
-				ofVec3f max = lander.getSceneMax() + lander.getPosition();
-
-				Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-				ofNoFill();
-				ofSetColor(ofColor::white);
-				Octree::drawBox(bounds);
-
-				// draw colliding boxes
-				//
-				ofSetColor(ofColor::lightBlue);
-				for (int i = 0; i < colBoxList.size(); i++) {
-					Octree::drawBox(colBoxList[i]);
-				}
-			}
+			ofPopMatrix();
+			lander.setPosition(0, 50, 0);  // Reset position
+			
+			// Draw axis at lander position for reference
+			drawAxis(ofVec3f(0, 50, 0));
 		}
 	}
 	if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
@@ -183,7 +254,11 @@ void ofApp::draw() {
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);
 		ofSetColor(ofColor::green);
+		// Flip terrain upside down - rotate 180 degrees around X axis
+		ofPushMatrix();
+		ofRotate(180, 1, 0, 0);
 		mars.drawVertices();
+		ofPopMatrix();
 	}
 
 	// highlight selected point (draw sphere around selected point)
@@ -300,6 +375,26 @@ void ofApp::keyPressed(int key) {
 	case 'w':
 		toggleWireframeMode();
 		break;
+	case 'Q':
+	case 'q':
+		bMoveUp = true;
+		break;
+	case 'E':
+	case 'e':
+		bMoveDown = true;
+		break;
+	case OF_KEY_UP:
+		bArrowUp = true;
+		break;
+	case OF_KEY_DOWN:
+		bArrowDown = true;
+		break;
+	case OF_KEY_LEFT:
+		bArrowLeft = true;
+		break;
+	case OF_KEY_RIGHT:
+		bArrowRight = true;
+		break;
 	case OF_KEY_ALT:
 		cam.enableMouseInput();
 		bAltKeyDown = true;
@@ -331,7 +426,26 @@ void ofApp::togglePointsDisplay() {
 void ofApp::keyReleased(int key) {
 
 	switch (key) {
-	
+	case 'Q':
+	case 'q':
+		bMoveUp = false;
+		break;
+	case 'E':
+	case 'e':
+		bMoveDown = false;
+		break;
+	case OF_KEY_UP:
+		bArrowUp = false;
+		break;
+	case OF_KEY_DOWN:
+		bArrowDown = false;
+		break;
+	case OF_KEY_LEFT:
+		bArrowLeft = false;
+		break;
+	case OF_KEY_RIGHT:
+		bArrowRight = false;
+		break;
 	case OF_KEY_ALT:
 		cam.disableMouseInput();
 		bAltKeyDown = false;
@@ -367,32 +481,10 @@ void ofApp::mousePressed(int x, int y, int button) {
 //
 	if (cam.getMouseInputEnabled()) return;
 
-	// if rover is loaded, test for selection
-	//
-	if (bLanderLoaded) {
-		glm::vec3 origin = cam.getPosition();
-		glm::vec3 mouseWorld = cam.screenToWorld(glm::vec3(mouseX, mouseY, 0));
-		glm::vec3 mouseDir = glm::normalize(mouseWorld - origin);
-
-		ofVec3f min = lander.getSceneMin() + lander.getPosition();
-		ofVec3f max = lander.getSceneMax() + lander.getPosition();
-
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-		bool hit = bounds.intersect(Ray(Vector3(origin.x, origin.y, origin.z), Vector3(mouseDir.x, mouseDir.y, mouseDir.z)), 0, 10000);
-		if (hit) {
-			bLanderSelected = true;
-			mouseDownPos = getMousePointOnPlane(lander.getPosition(), cam.getZAxis());
-			mouseLastPos = mouseDownPos;
-			bInDrag = true;
-		}
-		else {
-			bLanderSelected = false;
-		}
-	}
-	else {
-		ofVec3f p;
-		raySelectWithOctree(p);
-	}
+	// Lander is static - disable mouse interaction for lighting test
+	// Just do terrain selection
+	ofVec3f p;
+	raySelectWithOctree(p);
 }
 
 bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
@@ -429,47 +521,10 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	//
 	if (cam.getMouseInputEnabled()) return;
 
-	if (bInDrag) {
-
-		glm::vec3 landerPos = lander.getPosition();
-
-		glm::vec3 mousePos = getMousePointOnPlane(landerPos, cam.getZAxis());
-		glm::vec3 delta = mousePos - mouseLastPos;
-	
-		landerPos += delta;
-		lander.setPosition(landerPos.x, landerPos.y, landerPos.z);
-		mouseLastPos = mousePos;
-
-		ofVec3f min = lander.getSceneMin() + lander.getPosition();
-		ofVec3f max = lander.getSceneMax() + lander.getPosition();
-
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-
-		colBoxList.clear();
-
-		// bounding box inserection time test
-		//float startIntersect = ofGetElapsedTimeMicros();
-		octree.intersect(bounds, octree.root, colBoxList);
-		//float endIntersect = ofGetElapsedTimeMicros();
-
-		//double intersect_ms = (endIntersect - startIntersect) / 1000.0; // convert microseconds to milliseconds
-		//if (bTimingInfo) // toggle
-			//cout << "Bounding Box-Octree intersection time: " << (intersect_ms) << " ms" << endl;
-	
-
-		/*if (bounds.overlap(testBox)) {
-			cout << "overlap" << endl;
-		}
-		else {
-			cout << "OK" << endl;
-		}*/
-
-
-	}
-	else {
-		ofVec3f p;
-		raySelectWithOctree(p);
-	}
+	// Lander is static - no dragging allowed for lighting test
+	// Just do terrain selection
+	ofVec3f p;
+	raySelectWithOctree(p);
 }
 
 //--------------------------------------------------------------
@@ -509,40 +564,51 @@ void ofApp::gotMessage(ofMessage msg){
 
 
 //--------------------------------------------------------------
-// setup basic ambient lighting in GL  (for now, enable just 1 light)
+// setup simple global lighting - high ambient for visibility without shadows
 //
 void ofApp::initLightingAndMaterials() {
 
-	static float ambient[] =
-	{ .5f, .5f, .5, 1.0f };
-	static float diffuse[] =
-	{ 1.0f, 1.0f, 1.0f, 1.0f };
+	// Simple global lighting system - high ambient makes everything visible
+	// No shadows, just bright global illumination
+	
+	// Set very high ambient material so objects are always visible
+	static float mat_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static float mat_diffuse[] = { 1.0f, 1.0f, 1.0f, 1.0f };
+	static float mat_specular[] = { 0.0f, 0.0f, 0.0f, 1.0f };  // No specular highlights
+	static float mat_shininess[] = { 0.0f };
 
-	static float position[] =
-	{5.0, 5.0, 5.0, 0.0 };
+	glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, mat_ambient);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, mat_diffuse);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT_AND_BACK, GL_SHININESS, mat_shininess);
+	
+	// Enable color material so colors work properly
+	glEnable(GL_COLOR_MATERIAL);
+	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 
-	static float lmodel_ambient[] =
-	{ 1.0f, 1.0f, 1.0f, 1.0f };
+	// Setup light with very high ambient and moderate diffuse
+	// This ensures everything is well-lit
+	static float light_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Maximum ambient
+	static float light_diffuse[] = { 0.8f, 0.8f, 0.8f, 1.0f };
+	static float light_specular[] = { 0.0f, 0.0f, 0.0f, 1.0f };
 
-	static float lmodel_twoside[] =
-	{ GL_TRUE };
+	glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular);
 
-
-	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffuse);
+	// Directional light from above - pointing straight down
+	static float position[] = { 0.0, -1.0, 0.0, 0.0 };
 	glLightfv(GL_LIGHT0, GL_POSITION, position);
 
-	glLightfv(GL_LIGHT1, GL_AMBIENT, ambient);
-	glLightfv(GL_LIGHT1, GL_DIFFUSE, diffuse);
-	glLightfv(GL_LIGHT1, GL_POSITION, position);
-
+	// Very high global ambient - this is the key to making everything visible
+	static float lmodel_ambient[] = { 1.0f, 1.0f, 1.0f, 1.0f };  // Maximum global ambient
+	static float lmodel_twoside[] = { GL_TRUE };
 
 	glLightModelfv(GL_LIGHT_MODEL_AMBIENT, lmodel_ambient);
 	glLightModelfv(GL_LIGHT_MODEL_TWO_SIDE, lmodel_twoside);
 
 	glEnable(GL_LIGHTING);
 	glEnable(GL_LIGHT0);
-//	glEnable(GL_LIGHT1);
 	glShadeModel(GL_SMOOTH);
 } 
 

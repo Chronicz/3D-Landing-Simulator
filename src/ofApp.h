@@ -55,19 +55,24 @@ class ofApp : public ofBaseApp{
 		ofxToggle bTimingInfo;
 		ofxPanel gui;
 
-		bool bAltKeyDown;
-		bool bCtrlKeyDown;
-		bool bWireframe;
-		bool bDisplayPoints;
-		bool bPointSelected;
-		bool bHide;
-		bool pointSelected = false;
-		bool bDisplayLeafNodes = false;
-		bool bDisplayOctree = false;
-		bool bDisplayBBoxes = false;
-		
-		bool bLanderLoaded;
-		bool bTerrainSelected;
+	bool bAltKeyDown;
+	bool bCtrlKeyDown;
+	bool bWireframe;
+	bool bDisplayPoints;
+	bool bPointSelected;
+	bool bHide;
+	bool pointSelected = false;
+	bool bDisplayLeafNodes = false;
+	bool bDisplayOctree = false;
+	bool bDisplayBBoxes = false;
+	
+	bool bLanderLoaded;
+	bool bTerrainSelected;
+	
+	// Camera movement controls
+	bool bArrowUp, bArrowDown, bArrowLeft, bArrowRight;
+	bool bMoveUp, bMoveDown;  // For vertical movement (Page Up/Down or Q/E)
+	float cameraMoveSpeed;
 	
 		ofVec3f selectedPoint;
 		ofVec3f intersectPoint;
