@@ -74,7 +74,14 @@ class ofApp : public ofBaseApp{
 
 		vector<Box> bboxList;
 
-		const float selectionRange = 4.0;
+	const float selectionRange = 4.0;
 
-		bool resolvingCollision = false;
+	bool resolvingCollision = false;
+
+	// Free camera movement variables
+	bool bArrowUp = false;
+	bool bArrowDown = false;
+	bool bArrowLeft = false;
+	bool bArrowRight = false;
+	float cameraMoveSpeed = 0.5f;
 };

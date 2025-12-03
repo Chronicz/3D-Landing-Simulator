@@ -88,7 +88,47 @@ void ofApp::update() {
 		Vector3(max.x, max.y, max.z)
 	);
 
+	// Free camera movement with arrow keys
+	if (bArrowUp || bArrowDown || bArrowLeft || bArrowRight) {
+		glm::vec3 pos = cam.getPosition();
+		glm::vec3 forward = -glm::normalize(cam.getZAxis());  // Camera forward direction (negative Z is forward)
+		
+		// Calculate right vector using camera's orientation
+		// Try to get X axis directly, or calculate from forward and up
+		glm::vec3 right;
+		glm::vec3 worldUp = glm::vec3(0, 1, 0);
+		
+		// Calculate right vector: right = forward × up, then normalize
+		right = glm::normalize(glm::cross(forward, worldUp));
+		
+		// If forward is parallel to world up, use a different reference
+		if (glm::length(right) < 0.1f) {
+			glm::vec3 worldForward = glm::vec3(0, 0, -1);
+			right = glm::normalize(glm::cross(worldForward, worldUp));
+		}
 
+		glm::vec3 moveDir(0, 0, 0);
+
+		if (bArrowUp) {
+			// Move forward
+			moveDir += forward * cameraMoveSpeed;
+		}
+		if (bArrowDown) {
+			// Move backward
+			moveDir -= forward * cameraMoveSpeed;
+		}
+		if (bArrowLeft) {
+			// Strafe left
+			moveDir -= right * cameraMoveSpeed;
+		}
+		if (bArrowRight) {
+			// Strafe right
+			moveDir += right * cameraMoveSpeed;
+		}
+
+		// Update camera position
+		cam.setPosition(pos + moveDir);
+	}
 
 	// if lander loaded in, check for collision with terrain
 	if (resolvingCollision) {
@@ -118,7 +158,10 @@ void ofApp::draw() {
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
 		ofSetColor(ofColor::slateGray);
+		ofPushMatrix();
+		ofRotateDeg(180, 1, 0, 0);  // Flip terrain upside down
 		mars.drawWireframe();
+		ofPopMatrix();
 		if (bLanderLoaded) {
 			lander.drawWireframe();
 			if (!bTerrainSelected) drawAxis(lander.getPosition());
@@ -127,7 +170,10 @@ void ofApp::draw() {
 	}
 	else {
 		ofEnableLighting();              // shaded mode
+		ofPushMatrix();
+		ofRotateDeg(180, 1, 0, 0);  // Flip terrain upside down
 		mars.drawFaces();
+		ofPopMatrix();
 		ofMesh mesh;
 		if (bLanderLoaded) {
 			lander.drawFaces();
@@ -177,7 +223,10 @@ void ofApp::draw() {
 	if (bDisplayPoints) {                // display points as an option    
 		glPointSize(3);
 		ofSetColor(ofColor::green);
+		ofPushMatrix();
+		ofRotateDeg(180, 1, 0, 0);  // Flip terrain upside down
 		mars.drawVertices();
+		ofPopMatrix();
 	}
 
 	// highlight selected point (draw sphere around selected point)
@@ -305,6 +354,18 @@ void ofApp::keyPressed(int key) {
 		break;
 	case OF_KEY_DEL:
 		break;
+	case OF_KEY_UP:
+		bArrowUp = true;
+		break;
+	case OF_KEY_DOWN:
+		bArrowDown = true;
+		break;
+	case OF_KEY_LEFT:
+		bArrowLeft = true;
+		break;
+	case OF_KEY_RIGHT:
+		bArrowRight = true;
+		break;
 	default:
 		break;
 	}
@@ -334,6 +395,18 @@ void ofApp::keyReleased(int key) {
 		bCtrlKeyDown = false;
 		break;
 	case OF_KEY_SHIFT:
+		break;
+	case OF_KEY_UP:
+		bArrowUp = false;
+		break;
+	case OF_KEY_DOWN:
+		bArrowDown = false;
+		break;
+	case OF_KEY_LEFT:
+		bArrowLeft = false;
+		break;
+	case OF_KEY_RIGHT:
+		bArrowRight = false;
 		break;
 	default:
 		break;
