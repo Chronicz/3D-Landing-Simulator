@@ -4,6 +4,7 @@
 #include "ofxGui.h"
 #include  "ofxAssimpModelLoader.h"
 #include "Octree.h"
+#include "SpaceLander.h"
 #include <glm/gtx/intersect.hpp>
 
 
@@ -84,4 +85,23 @@ class ofApp : public ofBaseApp{
 	bool bArrowLeft = false;
 	bool bArrowRight = false;
 	float cameraMoveSpeed = 0.5f;
+
+	// SpaceLander physics simulation
+	SpaceLander spaceLander;
+	float lastFrameTime;  // For calculating deltaTime
+	
+	// Lander control inputs
+	bool bThrustKey = false;      // Space bar for main thrust
+	bool bForwardKey = false;     // W key
+	bool bBackwardKey = false;    // S key
+	bool bLeftKey = false;        // A key
+	bool bRightKey = false;       // D key
+	bool bUpKey = false;          // R key
+	bool bDownKey = false;        // F key
+	bool bYawLeftKey = false;     // Q key
+	bool bYawRightKey = false;    // E key
+	bool bPitchUpKey = false;     // I key
+	bool bPitchDownKey = false;   // K key
+	bool bRollLeftKey = false;    // J key
+	bool bRollRightKey = false;   // L key
 };
