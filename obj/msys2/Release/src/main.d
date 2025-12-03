@@ -104,7 +104,7 @@ obj/msys2/Release/src/main.o: src/main.cpp \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpMeshHelper.h \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpTexture.h \
  C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/addons/ofxAssimpModelLoader/src/ofxAssimpAnimation.h \
- src/Octree.h src/box.h src/vector3.h src/ray.h
+ src/Octree.h src/box.h src/vector3.h src/ray.h src/SpaceLander.h
 C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/libs/openFrameworks/ofMain.h:
 C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/libs/openFrameworks/utils/ofConstants.h:
 C:/Users/shado/Desktop/of_v0.12.1_msys2_mingw64_release/libs/tess2/include/tesselator.h:
@@ -214,3 +214,4 @@ src/Octree.h:
 src/box.h:
 src/vector3.h:
 src/ray.h:
+src/SpaceLander.h:
