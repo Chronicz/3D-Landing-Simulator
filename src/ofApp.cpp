@@ -24,6 +24,7 @@ void ofApp::setup(){
 	bCtrlKeyDown = false;
 	bLanderLoaded = false;
 	bTerrainSelected = true;
+	lastFrameTime = ofGetElapsedTimef();  // Initialize frame time tracking
 //	ofSetWindowShape(1024, 768);
 	cam.setDistance(10);
 	cam.setNearClip(.1);
@@ -55,6 +56,9 @@ void ofApp::setup(){
 		for (int i = 0; i < lander.getMeshCount(); i++) {
 			bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
 		}
+
+		// Initialize SpaceLander physics
+		spaceLander.setup(glm::vec3(0, 30, 0), 1000.0f, 100.0f);
 	}
 	else {
 		cout << "Error: Could not load lander.obj" << endl;
@@ -92,6 +96,69 @@ void ofApp::setup(){
 // incrementally update scene (animation)
 //
 void ofApp::update() {
+	// Update SpaceLander controls based on key states
+	if (bLanderLoaded) {
+		// Main thrust (Space bar)
+		spaceLander.setThrust(bThrustKey ? 1.0f : 0.0f);
+		
+		// Forward/backward (R/F) - tilts main thruster forward/back (affects thrust direction)
+		float forwardBack = 0.0f;
+		if (bUpKey) forwardBack = 1.0f;
+		if (bDownKey) forwardBack = -1.0f;
+		spaceLander.setForward(forwardBack);
+		
+		// Left/right (A/D) - lateral movement
+		float lateral = 0.0f;
+		if (bLeftKey) lateral = -1.0f;
+		if (bRightKey) lateral = 1.0f;
+		spaceLander.setLateral(lateral);
+		
+		// Up/down (W/S) - vertical movement
+		float vertical = 0.0f;
+		if (bForwardKey) vertical = 1.0f;
+		if (bBackwardKey) vertical = -1.0f;
+		spaceLander.setVertical(vertical);
+		
+		// Yaw (Q/E) - rotation around UP axis
+		float yaw = 0.0f;
+		if (bYawLeftKey) yaw = -1.0f;
+		if (bYawRightKey) yaw = 1.0f;
+		spaceLander.setYaw(yaw);
+		
+		// Pitch control (I/K) - nose up/down (RCS rotation)
+		float pitch = 0.0f;
+		if (bPitchUpKey) pitch = -1.0f;  // I now pitches down
+		if (bPitchDownKey) pitch = 1.0f;  // K now pitches up
+		spaceLander.setPitch(pitch);
+		
+		// Roll control (J/L)
+		float roll = 0.0f;
+		if (bRollLeftKey) roll = 1.0f;   // J now rolls right
+		if (bRollRightKey) roll = -1.0f; // L now rolls left
+		spaceLander.setRoll(roll);
+
+		// Update physics simulation
+		float currentTime = ofGetElapsedTimef();
+		float deltaTime = currentTime - lastFrameTime;
+		lastFrameTime = currentTime;
+		
+		// Sanity check for deltaTime (cap at 0.1 seconds to prevent large jumps)
+		if (deltaTime > 0.0f && deltaTime < 0.1f) {
+			spaceLander.update(deltaTime);
+		} else if (deltaTime >= 0.1f) {
+			// If deltaTime is too large, use a fixed small timestep
+			spaceLander.update(0.016f);  // ~60fps
+		}
+
+		// Update lander model position and rotation from physics
+		glm::vec3 landerPos = spaceLander.position;
+		lander.setPosition(landerPos.x, landerPos.y, landerPos.z);
+		
+		// Convert quaternion to Euler angles for lander model
+		// Note: ofxAssimpModelLoader might use different rotation methods
+		// We'll apply rotation via transform matrix in draw()
+	}
+
 	// Update lander bounding box to current position
 	/* had to update position due to problem in collision resolution - landerbounds would hold initial position when dragged into project and not update as lander moved
 	resulting in the ship moving infinitely upwards even with the bounding box not colliding with more than 10 boxes anymore */
@@ -179,9 +246,11 @@ void ofApp::draw() {
 		ofPopMatrix();
 		if (bLanderLoaded) {
 			ofPushMatrix();
+			// Apply SpaceLander transform (position and rotation)
+			glm::mat4 transform = spaceLander.getTransformMatrix();
+			ofMultMatrix(transform);
+			ofRotateDeg(180, 1, 0, 0);  // Flip lander model upside down (model orientation fix)
 			ofVec3f landerPos = lander.getPosition();
-			ofTranslate(landerPos);
-			ofRotateDeg(180, 1, 0, 0);  // Flip lander upside down
 			lander.setPosition(0, 0, 0);  // Temporarily set to origin for drawing
 			lander.drawWireframe();
 			lander.setPosition(landerPos.x, landerPos.y, landerPos.z);  // Restore position
@@ -199,9 +268,11 @@ void ofApp::draw() {
 		ofMesh mesh;
 		if (bLanderLoaded) {
 			ofPushMatrix();
+			// Apply SpaceLander transform (position and rotation)
+			glm::mat4 transform = spaceLander.getTransformMatrix();
+			ofMultMatrix(transform);
+			ofRotateDeg(180, 1, 0, 0);  // Flip lander model upside down (model orientation fix)
 			ofVec3f landerPos = lander.getPosition();
-			ofTranslate(landerPos);
-			ofRotateDeg(180, 1, 0, 0);  // Flip lander upside down
 			lander.setPosition(0, 0, 0);  // Temporarily set to origin for drawing
 			lander.drawFaces();
 			lander.setPosition(landerPos.x, landerPos.y, landerPos.z);  // Restore position
@@ -335,27 +406,14 @@ void ofApp::keyPressed(int key) {
 		if (cam.getMouseInputEnabled()) cam.disableMouseInput();
 		else cam.enableMouseInput();
 		break;
-	case 'F':
-	case 'f':
-		ofToggleFullscreen();
-		break;
 	case 'H':
 	case 'h':
-		break;
-	case 'L':
-	case 'l':
-		bDisplayLeafNodes = !bDisplayLeafNodes;
 		break;
 	case 'O':
 	case 'o':
 		bDisplayOctree = !bDisplayOctree;
 		break;
-	case 'r':
-		cam.reset();
-		break;
-	case 's':
-		savePicture();
-		break;
+	// 'r' and 's' handled below with lander controls
 	case 't':
 		setCameraTarget();
 		break;
@@ -370,7 +428,91 @@ void ofApp::keyPressed(int key) {
 	case 'V':
 		break;
 	case 'w':
-		toggleWireframeMode();
+	case 'W':
+		if (bLanderLoaded) {
+			bForwardKey = true;
+		} else {
+			toggleWireframeMode();
+		}
+		break;
+	case 's':
+	case 'S':
+		if (bLanderLoaded) {
+			bBackwardKey = true;
+		} else {
+			savePicture();
+		}
+		break;
+	case 'a':
+	case 'A':
+		if (bLanderLoaded) {
+			bLeftKey = true;
+		}
+		break;
+	case 'd':
+	case 'D':
+		if (bLanderLoaded) {
+			bRightKey = true;
+		}
+		break;
+	case 'r':
+	case 'R':
+		if (bLanderLoaded) {
+			bUpKey = true;
+		} else {
+			cam.reset();
+		}
+		break;
+	case 'f':
+	case 'F':
+		if (bLanderLoaded) {
+			bDownKey = true;
+		} else {
+			ofToggleFullscreen();
+		}
+		break;
+	case 'q':
+	case 'Q':
+		if (bLanderLoaded) {
+			bYawLeftKey = true;
+		}
+		break;
+	case 'e':
+	case 'E':
+		if (bLanderLoaded) {
+			bYawRightKey = true;
+		}
+		break;
+	case 'i':
+	case 'I':
+		if (bLanderLoaded) {
+			bPitchUpKey = true;
+		}
+		break;
+	case 'k':
+	case 'K':
+		if (bLanderLoaded) {
+			bPitchDownKey = true;
+		}
+		break;
+	case 'j':
+	case 'J':
+		if (bLanderLoaded) {
+			bRollLeftKey = true;
+		}
+		break;
+	case 'l':
+	case 'L':
+		if (bLanderLoaded) {
+			bRollRightKey = true;
+		} else {
+			bDisplayLeafNodes = !bDisplayLeafNodes;
+		}
+		break;
+	case ' ':
+		if (bLanderLoaded) {
+			bThrustKey = true;
+		}
 		break;
 	case OF_KEY_ALT:
 		cam.enableMouseInput();
@@ -436,6 +578,57 @@ void ofApp::keyReleased(int key) {
 		break;
 	case OF_KEY_RIGHT:
 		bArrowRight = false;
+		break;
+	case 'w':
+	case 'W':
+		bForwardKey = false;
+		break;
+	case 's':
+	case 'S':
+		bBackwardKey = false;
+		break;
+	case 'a':
+	case 'A':
+		bLeftKey = false;
+		break;
+	case 'd':
+	case 'D':
+		bRightKey = false;
+		break;
+	case 'r':
+	case 'R':
+		bUpKey = false;
+		break;
+	case 'f':
+	case 'F':
+		bDownKey = false;
+		break;
+	case 'q':
+	case 'Q':
+		bYawLeftKey = false;
+		break;
+	case 'e':
+	case 'E':
+		bYawRightKey = false;
+		break;
+	case 'i':
+	case 'I':
+		bPitchUpKey = false;
+		break;
+	case 'k':
+	case 'K':
+		bPitchDownKey = false;
+		break;
+	case 'j':
+	case 'J':
+		bRollLeftKey = false;
+		break;
+	case 'l':
+	case 'L':
+		bRollRightKey = false;
+		break;
+	case ' ':
+		bThrustKey = false;
 		break;
 	default:
 		break;
