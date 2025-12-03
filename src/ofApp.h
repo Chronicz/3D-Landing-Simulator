@@ -104,4 +104,10 @@ class ofApp : public ofBaseApp{
 	bool bPitchDownKey = false;   // K key
 	bool bRollLeftKey = false;    // J key
 	bool bRollRightKey = false;   // L key
+
+	// Collision detection and altitude
+	float altitude = 0.0f;        // Altitude above terrain (from ray casting)
+	glm::vec3 groundNormal;       // Normal of ground surface
+	bool bCollisionDetected = false;  // Whether collision is detected
+	bool bLanded = false;         // Whether lander has landed (static)
 };
