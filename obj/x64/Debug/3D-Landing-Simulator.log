@@ -1,0 +1,107 @@
+﻿  Scanning sources for module dependencies...
+  Octree.cpp
+  ofApp.cpp
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(65,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(297,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(762,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(754,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(791,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(785,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1667,21): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
+  (compiling source file 'src/Octree.cpp')
+      C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1667,21):
+      the template instantiation context (the oldest one first) is
+          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\of3dPrimitives.h(71,20):
+          see reference to class template instantiation 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>' being compiled
+          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(524,53):
+          while compiling class template member function 'size_t ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getNumVertices(void) const'
+              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\Octree.cpp(37,8):
+              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getNumVertices' in 'Octree::meshBounds'
+          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1649,83):
+          while compiling class template member function 'const std::vector<ofMeshFace_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>,std::allocator<ofMeshFace_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>>> &ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getUniqueFaces(void) const'
+              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1637,44):
+              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getUniqueFaces' in 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getFace'
+              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\Octree.cpp(109,26):
+              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getFace' in 'Octree::getMeshFacesInBox'
+  
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1669,21): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
+  (compiling source file 'src/Octree.cpp')
+  
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1671,23): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
+  (compiling source file 'src/Octree.cpp')
+  
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1673,20): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
+  (compiling source file 'src/Octree.cpp')
+  
+LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(void)" (??0xml_attribute@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(struct pugi::xml_attribute_struct *)" (??0xml_attribute@pugi@@QEAA@PEAUxml_attribute_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::operator void (__cdecl*)(class pugi::xml_attribute * * *)(void)const " (??Bxml_attribute@pugi@@QEBAP6AXPEAPEAPEAV01@@ZXZ) already defined in libassimpD.lib(ColladaParser.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_attribute::empty(void)const " (?empty@xml_attribute@pugi@@QEBA_NXZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_attribute::name(void)const " (?name@xml_attribute@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_attribute::value(void)const " (?value@xml_attribute@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_attribute::as_string(char const *)const " (?as_string@xml_attribute@pugi@@QEBAPEBDPEBD@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: int __cdecl pugi::xml_attribute::as_int(int)const " (?as_int@xml_attribute@pugi@@QEBAHH@Z) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: unsigned int __cdecl pugi::xml_attribute::as_uint(unsigned int)const " (?as_uint@xml_attribute@pugi@@QEBAII@Z) already defined in libassimpD.lib(AMFImporter_Material.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: float __cdecl pugi::xml_attribute::as_float(float)const " (?as_float@xml_attribute@pugi@@QEBAMM@Z) already defined in libassimpD.lib(AMFImporter_Material.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_attribute::as_bool(bool)const " (?as_bool@xml_attribute@pugi@@QEBA_N_N@Z) already defined in libassimpD.lib(AMFImporter_Material.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_node::xml_node(void)" (??0xml_node@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_node::xml_node(struct pugi::xml_node_struct *)" (??0xml_node@pugi@@QEAA@PEAUxml_node_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_node::operator void (__cdecl*)(class pugi::xml_node * * *)(void)const " (??Bxml_node@pugi@@QEBAP6AXPEAPEAPEAV01@@ZXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_node::operator!(void)const " (??7xml_node@pugi@@QEBA_NXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_node::operator!=(class pugi::xml_node const &)const " (??9xml_node@pugi@@QEBA_NAEBV01@@Z) already defined in libassimpD.lib(ColladaParser.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_node::empty(void)const " (?empty@xml_node@pugi@@QEBA_NXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: enum pugi::xml_node_type __cdecl pugi::xml_node::type(void)const " (?type@xml_node@pugi@@QEBA?AW4xml_node_type@2@XZ) already defined in libassimpD.lib(IRRLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_node::name(void)const " (?name@xml_node@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_node::value(void)const " (?value@xml_node@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(X3DImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::first_child(void)const " (?first_child@xml_node@pugi@@QEBA?AV12@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::next_sibling(void)const " (?next_sibling@xml_node@pugi@@QEBA?AV12@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::parent(void)const " (?parent@xml_node@pugi@@QEBA?AV12@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::root(void)const " (?root@xml_node@pugi@@QEBA?AV12@XZ) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_text __cdecl pugi::xml_node::text(void)const " (?text@xml_node@pugi@@QEBA?AVxml_text@2@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::child(char const *)const " (?child@xml_node@pugi@@QEBA?AV12@PEBD@Z) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_attribute __cdecl pugi::xml_node::attribute(char const *)const " (?attribute@xml_node@pugi@@QEBA?AVxml_attribute@2@PEBD@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node __cdecl pugi::xml_node::next_sibling(char const *)const " (?next_sibling@xml_node@pugi@@QEBA?AV12@PEBD@Z) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node_iterator __cdecl pugi::xml_node::begin(void)const " (?begin@xml_node@pugi@@QEBA?AVxml_node_iterator@2@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node_iterator __cdecl pugi::xml_node::end(void)const " (?end@xml_node@pugi@@QEBA?AVxml_node_iterator@2@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_attribute_iterator __cdecl pugi::xml_node::attributes_begin(void)const " (?attributes_begin@xml_node@pugi@@QEBA?AVxml_attribute_iterator@2@XZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_attribute_iterator __cdecl pugi::xml_node::attributes_end(void)const " (?attributes_end@xml_node@pugi@@QEBA?AVxml_attribute_iterator@2@XZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_object_range<class pugi::xml_node_iterator> __cdecl pugi::xml_node::children(void)const " (?children@xml_node@pugi@@QEBA?AV?$xml_object_range@Vxml_node_iterator@pugi@@@2@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_object_range<class pugi::xml_attribute_iterator> __cdecl pugi::xml_node::attributes(void)const " (?attributes@xml_node@pugi@@QEBA?AV?$xml_object_range@Vxml_attribute_iterator@pugi@@@2@XZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_object_range<class pugi::xml_named_node_iterator> __cdecl pugi::xml_node::children(char const *)const " (?children@xml_node@pugi@@QEBA?AV?$xml_object_range@Vxml_named_node_iterator@pugi@@@2@PEBD@Z) already defined in libassimpD.lib(OgreXmlSerializer.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: __cdecl pugi::xml_text::xml_text(struct pugi::xml_node_struct *)" (??0xml_text@pugi@@AEAA@PEAUxml_node_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: struct pugi::xml_node_struct * __cdecl pugi::xml_text::_data(void)const " (?_data@xml_text@pugi@@AEBAPEAUxml_node_struct@2@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_text::get(void)const " (?get@xml_text@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(IRRMeshLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_text::as_string(char const *)const " (?as_string@xml_text@pugi@@QEBAPEBDPEBD@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: float __cdecl pugi::xml_text::as_float(float)const " (?as_float@xml_text@pugi@@QEBAMM@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_text::as_bool(bool)const " (?as_bool@xml_text@pugi@@QEBA_N_N@Z) already defined in libassimpD.lib(ColladaParser.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: __cdecl pugi::xml_node_iterator::xml_node_iterator(struct pugi::xml_node_struct *,struct pugi::xml_node_struct *)" (??0xml_node_iterator@pugi@@AEAA@PEAUxml_node_struct@1@0@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_node_iterator::operator==(class pugi::xml_node_iterator const &)const " (??8xml_node_iterator@pugi@@QEBA_NAEBV01@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_node_iterator::operator!=(class pugi::xml_node_iterator const &)const " (??9xml_node_iterator@pugi@@QEBA_NAEBV01@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node & __cdecl pugi::xml_node_iterator::operator*(void)const " (??Dxml_node_iterator@pugi@@QEBAAEAVxml_node@1@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node_iterator & __cdecl pugi::xml_node_iterator::operator++(void)" (??Exml_node_iterator@pugi@@QEAAAEAV01@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: __cdecl pugi::xml_attribute_iterator::xml_attribute_iterator(struct pugi::xml_attribute_struct *,struct pugi::xml_node_struct *)" (??0xml_attribute_iterator@pugi@@AEAA@PEAUxml_attribute_struct@1@PEAUxml_node_struct@1@@Z) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_attribute_iterator::operator!=(class pugi::xml_attribute_iterator const &)const " (??9xml_attribute_iterator@pugi@@QEBA_NAEBV01@@Z) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_attribute & __cdecl pugi::xml_attribute_iterator::operator*(void)const " (??Dxml_attribute_iterator@pugi@@QEBAAEAVxml_attribute@1@XZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_attribute_iterator & __cdecl pugi::xml_attribute_iterator::operator++(void)" (??Exml_attribute_iterator@pugi@@QEAAAEAV01@XZ) already defined in libassimpD.lib(XGLLoader.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: bool __cdecl pugi::xml_named_node_iterator::operator!=(class pugi::xml_named_node_iterator const &)const " (??9xml_named_node_iterator@pugi@@QEBA_NAEBV01@@Z) already defined in libassimpD.lib(OgreXmlSerializer.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_node & __cdecl pugi::xml_named_node_iterator::operator*(void)const " (??Dxml_named_node_iterator@pugi@@QEBAAEAVxml_node@1@XZ) already defined in libassimpD.lib(OgreXmlSerializer.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: class pugi::xml_named_node_iterator & __cdecl pugi::xml_named_node_iterator::operator++(void)" (??Exml_named_node_iterator@pugi@@QEAAAEAV01@XZ) already defined in libassimpD.lib(OgreXmlSerializer.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: __cdecl pugi::xml_named_node_iterator::xml_named_node_iterator(struct pugi::xml_node_struct *,struct pugi::xml_node_struct *,char const *)" (??0xml_named_node_iterator@pugi@@AEAA@PEAUxml_node_struct@1@0PEBD@Z) already defined in libassimpD.lib(OgreXmlSerializer.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_parse_result::xml_parse_result(void)" (??0xml_parse_result@pugi@@QEAA@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_parse_result::operator bool(void)const " (??Bxml_parse_result@pugi@@QEBA_NXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_parse_result::description(void)const " (?description@xml_parse_result@pugi@@QEBAPEBDXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: void __cdecl pugi::xml_document::_create(void)" (?_create@xml_document@pugi@@AEAAXXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "private: void __cdecl pugi::xml_document::_destroy(void)" (?_destroy@xml_document@pugi@@AEAAXXZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_document::xml_document(void)" (??0xml_document@pugi@@QEAA@XZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_document::~xml_document(void)" (??1xml_document@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: void __cdecl pugi::xml_document::reset(void)" (?reset@xml_document@pugi@@QEAAXXZ) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: struct pugi::xml_parse_result __cdecl pugi::xml_document::load_buffer(void const *,unsigned __int64,unsigned int,enum pugi::xml_encoding)" (?load_buffer@xml_document@pugi@@QEAA?AUxml_parse_result@2@PEBX_KIW4xml_encoding@2@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node::xpath_node(void)" (??0xpath_node@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node_set::xpath_node_set(void)" (??0xpath_node_set@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node_set::~xpath_node_set(void)" (??1xpath_node_set@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
+     Creating library bin\3D-Landing-Simulator_debug.lib and object bin\3D-Landing-Simulator_debug.exp
+bin\3D-Landing-Simulator_debug.exe : warning LNK4088: image being generated due to /FORCE option; image may not run
+  3D-Landing-Simulator.vcxproj -> C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\bin\3D-Landing-Simulator_debug.exe
+  File not found - *.dll
+  0 File(s) copied

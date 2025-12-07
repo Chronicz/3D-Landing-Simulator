@@ -29,9 +29,9 @@ public:
 	void subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int level);
 	bool intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
 	bool intersect(const Box &, TreeNode & node, vector<Box> & boxListRtn);
-	void draw(TreeNode & node, int numLevels, int level);
-	void draw(int numLevels, int level) {
-		draw(root, numLevels, level);
+	void draw(TreeNode & node, int numLevels, int level, const vector<ofColor> *colors = nullptr);
+	void draw(int numLevels, int level, const vector<ofColor> *colors = nullptr) {
+		draw(root, numLevels, level, colors);
 	}
 	void drawLeafNodes(TreeNode & node);
 	static void drawBox(const Box &box);

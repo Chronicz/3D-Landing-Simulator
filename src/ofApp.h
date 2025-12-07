@@ -35,7 +35,7 @@ class ofApp : public ofBaseApp{
 		void setCameraTarget();
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 		bool raySelectWithOctree(ofVec3f &pointRet);
-		glm::vec3 ofApp::getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
+		glm::vec3 getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 
 		ofEasyCam cam;
 		ofxAssimpModelLoader mars, lander;
@@ -63,6 +63,7 @@ class ofApp : public ofBaseApp{
 		bool bDisplayLeafNodes = false;
 		bool bDisplayOctree = false;
 		bool bDisplayBBoxes = false;
+		bool bDebugOctreeAlignment = false;  // Debug visualization toggle
 		
 		bool bLanderLoaded;
 		bool bTerrainSelected;
@@ -71,6 +72,7 @@ class ofApp : public ofBaseApp{
 		ofVec3f intersectPoint;
 
 		vector<Box> bboxList;
+		vector<ofColor> levelColors;  // Colors for different octree levels
 
 		const float selectionRange = 4.0;
 };
