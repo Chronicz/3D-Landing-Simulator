@@ -71,13 +71,6 @@ Box Octree::meshBounds(const ofMesh & mesh) {
 		if (minZ > maxZ) { float temp = minZ; minZ = maxZ; maxZ = temp; }
 	}
 	
-	// Debug output
-	cout << "Mesh bounds calculation:" << endl;
-	cout << "  Vertices: " << n << endl;
-	cout << "  Min: (" << minX << ", " << minY << ", " << minZ << ")" << endl;
-	cout << "  Max: (" << maxX << ", " << maxY << ", " << maxZ << ")" << endl;
-	cout << "  Size: (" << (maxX - minX) << ", " << (maxY - minY) << ", " << (maxZ - minZ) << ")" << endl;
-	
 	return Box(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ));
 }
 
@@ -289,6 +282,44 @@ bool Octree::intersect(const Ray &ray, const TreeNode & node, TreeNode & nodeRtn
 bool Octree::intersect(const Box &box, TreeNode & node, vector<Box> & boxListRtn) {
 	bool intersects = false;
 	return intersects;
+}
+
+// AABB-based recursive intersection: collects all leaf node boxes that overlap with target box
+// This is a pure reader function - does not modify octree state
+void Octree::intersect(const Box &target, const TreeNode &node, vector<Box> &results) {
+	// If node does NOT overlap → prune immediately and return
+	if (!node.box.overlap(target)) return;
+	
+	// If this is a leaf node (no children OR only 1 point), add its box to results
+	if (node.children.empty() || node.points.size() <= 1) {
+		results.push_back(node.box);
+		return;
+	}
+	
+	// Otherwise recurse into all children
+	for (const auto &child : node.children) {
+		intersect(target, child, results);
+	}
+}
+
+// Debug version: collects ALL overlapping nodes (including intermediate) for visualization
+// This is a pure reader function - does not modify octree state
+void Octree::intersectAll(const Box &target, const TreeNode &node, vector<Box> &results) {
+	// If node does NOT overlap → prune immediately and return
+	if (!node.box.overlap(target)) return;
+	
+	// Add this node's box to results (for debugging - shows all overlapping nodes)
+	results.push_back(node.box);
+	
+	// If this is a leaf node, we're done
+	if (node.children.empty() || node.points.size() <= 1) {
+		return;
+	}
+	
+	// Otherwise recurse into all children
+	for (const auto &child : node.children) {
+		intersectAll(target, child, results);
+	}
 }
 
 void Octree::draw(TreeNode & node, int numLevels, int level, const vector<ofColor> *colors) {

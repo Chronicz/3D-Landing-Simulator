@@ -29,6 +29,14 @@ public:
 	void subdivide(const ofMesh & mesh, TreeNode & node, int numLevels, int level);
 	bool intersect(const Ray &, const TreeNode & node, TreeNode & nodeRtn);
 	bool intersect(const Box &, TreeNode & node, vector<Box> & boxListRtn);
+	
+	// AABB-based recursive intersection: collects all leaf node boxes that overlap with target box
+	// Pure reader function - does not modify octree state
+	void intersect(const Box &target, const TreeNode &node, vector<Box> &results);
+	
+	// Debug version: collects ALL overlapping nodes (including intermediate) for visualization
+	// Pure reader function - does not modify octree state
+	void intersectAll(const Box &target, const TreeNode &node, vector<Box> &results);
 	void draw(TreeNode & node, int numLevels, int level, const vector<ofColor> *colors = nullptr);
 	void draw(int numLevels, int level, const vector<ofColor> *colors = nullptr) {
 		draw(root, numLevels, level, colors);

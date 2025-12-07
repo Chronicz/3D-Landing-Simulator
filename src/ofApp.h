@@ -36,6 +36,7 @@ class ofApp : public ofBaseApp{
 		bool mouseIntersectPlane(ofVec3f planePoint, ofVec3f planeNorm, ofVec3f &point);
 		bool raySelectWithOctree(ofVec3f &pointRet);
 		glm::vec3 getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
+		Box computeLanderWorldBounds();  // Helper to compute lander bounding box in world space
 
 		ofEasyCam cam;
 		ofxAssimpModelLoader mars, lander;
@@ -43,6 +44,9 @@ class ofApp : public ofBaseApp{
 		Box boundingBox, landerBounds;
 		Box testBox;
 		vector<Box> colBoxList;
+		Box landerBox;                     // Updated when dragging lander
+		vector<Box> collidingBoxes;        // highlight list for AABB collision visualization (leaf nodes only)
+		vector<Box> allCollidingBoxes;     // debug: all overlapping nodes including intermediate
 		bool bLanderSelected = false;
 		Octree octree;
 		TreeNode selectedNode;

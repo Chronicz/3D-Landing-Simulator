@@ -29,8 +29,8 @@ class Box {
     // corners
     Vector3 parameters[2];
 
-	Vector3 min() { return parameters[0]; }
-	Vector3 max() { return parameters[1]; }
+	Vector3 min() const { return parameters[0]; }
+	Vector3 max() const { return parameters[1]; }
 	const bool inside(const Vector3 &p) {
 		return ((p.x() >= parameters[0].x() && p.x() <= parameters[1].x()) &&
 		     	(p.y() >= parameters[0].y() && p.y() <= parameters[1].y()) &&
@@ -46,9 +46,14 @@ class Box {
 	}
 
 	// implement for Homework Project
+	// AABB overlap test: two boxes overlap if they are NOT separated on any axis
+	// Returns true if boxes overlap (including touching edges), false otherwise
+	// Standard AABB overlap: a.min.x <= b.max.x && a.max.x >= b.min.x (and same for y, z)
 	//
-	 bool overlap(const Box &box) {
-		 return false;
+	inline bool overlap(const Box &other) const {
+		return (parameters[0].x() <= other.parameters[1].x() && parameters[1].x() >= other.parameters[0].x()) &&
+		       (parameters[0].y() <= other.parameters[1].y() && parameters[1].y() >= other.parameters[0].y()) &&
+		       (parameters[0].z() <= other.parameters[1].z() && parameters[1].z() >= other.parameters[0].z());
 	}
 
 	Vector3 center() {

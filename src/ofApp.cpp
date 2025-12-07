@@ -14,6 +14,7 @@
 #include "Util.h"
 #include <algorithm>  // For std::min
 #include <cmath>      // For std::abs
+#include <float.h>    // For FLT_MAX
 
 
 //--------------------------------------------------------------
@@ -170,9 +171,9 @@ void ofApp::setup(){
 			cout << "\nE. Applying model matrix transformation..." << endl;
 			
 			for (int i = 0; i < transformedMesh.getNumVertices(); i++) {
-				glm::vec3 vertex = transformedMesh.getVertex(i);
-				glm::vec4 transformed = modelMatrix * glm::vec4(vertex.x, vertex.y, vertex.z, 1.0);
-				transformedMesh.setVertex(i, glm::vec3(transformed.x, transformed.y, transformed.z));
+				glm::vec3 v = transformedMesh.getVertex(i);
+				glm::vec4 t = modelMatrix * glm::vec4(v.x, v.y, v.z, 1.0);
+				transformedMesh.setVertex(i, glm::vec3(t.x, t.y, t.z));
 			}
 			
 			// Debug: Print first few vertices after transform
@@ -257,8 +258,127 @@ void ofApp::setup(){
 //--------------------------------------------------------------
 // incrementally update scene (animation)
 //
-void ofApp::update() {
+// Helper function to compute lander world-space bounding box
+// Transforms all vertices by model matrix to account for rotation/scale/translation
+Box ofApp::computeLanderWorldBounds() {
+	if (!bLanderLoaded) {
+		return Box(Vector3(0, 0, 0), Vector3(0, 0, 0));
+	}
 	
+	// Get model matrix (includes position, rotation, scale)
+	glm::mat4 modelMatrix = lander.getModelMatrix();
+	
+	// Get all meshes and transform their vertices to world space
+	float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
+	float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
+	
+	for (int i = 0; i < lander.getMeshCount(); i++) {
+		ofMesh mesh = lander.getMesh(i);
+		for (int j = 0; j < mesh.getNumVertices(); j++) {
+			glm::vec3 v = mesh.getVertex(j);
+			// Transform vertex by model matrix (already includes position)
+			glm::vec4 transformed = modelMatrix * glm::vec4(v.x, v.y, v.z, 1.0);
+			glm::vec3 worldPos = glm::vec3(transformed.x, transformed.y, transformed.z);
+			
+			minX = (worldPos.x < minX) ? worldPos.x : minX;
+			maxX = (worldPos.x > maxX) ? worldPos.x : maxX;
+			minY = (worldPos.y < minY) ? worldPos.y : minY;
+			maxY = (worldPos.y > maxY) ? worldPos.y : maxY;
+			minZ = (worldPos.z < minZ) ? worldPos.z : minZ;
+			maxZ = (worldPos.z > maxZ) ? worldPos.z : maxZ;
+		}
+	}
+	
+	return Box(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ));
+}
+
+void ofApp::update() {
+	// Clear previous collision results
+	collidingBoxes.clear();
+	allCollidingBoxes.clear();
+	
+	// Run collision test ONLY during drag
+	if (bInDrag && bLanderLoaded) {
+		// Compute lander bounding box in world space
+		landerBox = computeLanderWorldBounds();
+		
+		// Find all overlapping octree leaf nodes (for final highlighting)
+		octree.intersect(landerBox, octree.root, collidingBoxes);
+		
+		// DEBUG: Find ALL overlapping nodes including intermediate (for debugging visualization)
+		octree.intersectAll(landerBox, octree.root, allCollidingBoxes);
+		
+		// If no leaf nodes found but we have overlapping nodes, add small intermediate nodes as fallback
+		// This ensures highlights are visible even at lower octree levels
+		if (collidingBoxes.empty() && !allCollidingBoxes.empty()) {
+			// Calculate lander size for comparison
+			Vector3 landerMin = landerBox.min();
+			Vector3 landerMax = landerBox.max();
+			float landerSizeX = landerMax.x() - landerMin.x();
+			float landerSizeY = landerMax.y() - landerMin.y();
+			float landerSizeZ = landerMax.z() - landerMin.z();
+			float landerMaxSize = std::max(landerSizeX, std::max(landerSizeY, landerSizeZ));
+			
+			// Add intermediate nodes that are smaller than lander as temporary highlights
+			// This helps visualize collisions when octree level is too low to have leaf nodes
+			for (const auto &nodeBox : allCollidingBoxes) {
+				Vector3 nodeMin = nodeBox.min();
+				Vector3 nodeMax = nodeBox.max();
+				float nodeSizeX = nodeMax.x() - nodeMin.x();
+				float nodeSizeY = nodeMax.y() - nodeMin.y();
+				float nodeSizeZ = nodeMax.z() - nodeMin.z();
+				float nodeMaxSize = std::max(nodeSizeX, std::max(nodeSizeY, nodeSizeZ));
+				
+				// If node is significantly smaller than lander, treat it as a highlight candidate
+				if (nodeMaxSize < landerMaxSize * 0.8f) {
+					collidingBoxes.push_back(nodeBox);
+				}
+			}
+		}
+		
+		// DIAGNOSTIC OUTPUT - Print every frame during drag
+		static int frameCount = 0;
+		frameCount++;
+		if (frameCount % 30 == 0) {  // Print every 30 frames to avoid spam
+			Vector3 landerMin = landerBox.min();
+			Vector3 landerMax = landerBox.max();
+			Vector3 rootMin = octree.root.box.min();
+			Vector3 rootMax = octree.root.box.max();
+			
+			cout << "\n=== COLLISION DIAGNOSTICS (frame " << frameCount << ") ===" << endl;
+			cout << "bInDrag: " << (bInDrag ? "true" : "false") << ", bLanderLoaded: " << (bLanderLoaded ? "true" : "false") << endl;
+			cout << "Lander world bounds:" << endl;
+			cout << "  Min: (" << landerMin.x() << ", " << landerMin.y() << ", " << landerMin.z() << ")" << endl;
+			cout << "  Max: (" << landerMax.x() << ", " << landerMax.y() << ", " << landerMax.z() << ")" << endl;
+			cout << "Octree root bounds:" << endl;
+			cout << "  Min: (" << rootMin.x() << ", " << rootMin.y() << ", " << rootMin.z() << ")" << endl;
+			cout << "  Max: (" << rootMax.x() << ", " << rootMax.y() << ", " << rootMax.z() << ")" << endl;
+			
+			// Check if lander box overlaps root box
+			bool rootOverlap = landerBox.overlap(octree.root.box);
+			cout << "Lander overlaps root: " << (rootOverlap ? "YES" : "NO") << endl;
+			cout << "Total overlapping nodes (all): " << allCollidingBoxes.size() << endl;
+			cout << "Colliding leaf nodes: " << collidingBoxes.size() << endl;
+			
+			if (collidingBoxes.size() > 0) {
+				cout << "  First colliding box (leaf or small intermediate):" << endl;
+				Vector3 firstMin = collidingBoxes[0].min();
+				Vector3 firstMax = collidingBoxes[0].max();
+				cout << "    Min: (" << firstMin.x() << ", " << firstMin.y() << ", " << firstMin.z() << ")" << endl;
+				cout << "    Max: (" << firstMax.x() << ", " << firstMax.y() << ", " << firstMax.z() << ")" << endl;
+			} else if (allCollidingBoxes.size() > 0) {
+				cout << "  INFO: Found overlapping nodes but none are small enough to highlight." << endl;
+				cout << "  First overlapping node (may be too large):" << endl;
+				Vector3 firstMin = allCollidingBoxes[0].min();
+				Vector3 firstMax = allCollidingBoxes[0].max();
+				cout << "    Min: (" << firstMin.x() << ", " << firstMin.y() << ", " << firstMin.z() << ")" << endl;
+				cout << "    Max: (" << firstMax.x() << ", " << firstMax.y() << ", " << firstMax.z() << ")" << endl;
+			} else {
+				cout << "  No overlapping nodes found." << endl;
+			}
+			cout << "==========================================\n" << endl;
+		}
+	}
 }
 //--------------------------------------------------------------
 void ofApp::draw() {
@@ -361,6 +481,52 @@ void ofApp::draw() {
 		ofVec3f d = p - cam.getPosition();
 		ofSetColor(ofColor::lightGreen);
 		ofDrawSphere(p, .02 * d.length());
+	}
+	
+	// DEBUG: Draw lander world AABB in red (always visible during drag)
+	if (bInDrag && bLanderLoaded) {
+		ofDisableLighting();
+		ofNoFill();
+		ofSetColor(255, 0, 0);  // Red
+		ofSetLineWidth(2.5);
+		Octree::drawBox(landerBox);
+		ofSetLineWidth(1.0);
+	}
+	
+	// DEBUG: Draw octree root bounding box in blue (always visible during drag)
+	if (bInDrag && bLanderLoaded) {
+		ofDisableLighting();
+		ofNoFill();
+		ofSetColor(0, 0, 255);  // Blue
+		ofSetLineWidth(2.0);
+		Octree::drawBox(octree.root.box);
+		ofSetLineWidth(1.0);
+	}
+	
+	// DEBUG: Draw ALL overlapping nodes in faint cyan (for debugging - shows intermediate nodes too)
+	if (bInDrag && !allCollidingBoxes.empty()) {
+		ofDisableLighting();
+		ofNoFill();
+		ofSetColor(100, 255, 255, 150);  // Faint cyan with transparency
+		ofSetLineWidth(1.0);
+		for (auto &b : allCollidingBoxes) {
+			Octree::drawBox(b);
+		}
+	}
+	
+	// Draw colliding octree leaf boxes (or small intermediate nodes) in bright yellow during drag
+	// Always visible regardless of octree display mode
+	// This includes both actual leaf nodes and small intermediate nodes as fallback
+	if (bInDrag && !collidingBoxes.empty()) {
+		ofDisableLighting();
+		ofNoFill();
+		ofSetColor(255, 255, 0);  // Bright yellow
+		ofSetLineWidth(3.5);
+		for (auto &b : collidingBoxes) {
+			Octree::drawBox(b);
+		}
+		ofSetLineWidth(1.0);
+		ofSetColor(255, 255, 255);
 	}
 	
 	// Debug visualization for octree alignment
@@ -627,23 +793,17 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	if (cam.getMouseInputEnabled()) return;
 
 	if (bInDrag) {
-
 		glm::vec3 landerPos = lander.getPosition();
-
 		glm::vec3 mousePos = getMousePointOnPlane(landerPos, cam.getZAxis());
 		glm::vec3 delta = mousePos - mouseLastPos;
 	
 		landerPos += delta;
 		lander.setPosition(landerPos.x, landerPos.y, landerPos.z);
 		mouseLastPos = mousePos;
-
-		ofVec3f min = lander.getSceneMin() + lander.getPosition();
-		ofVec3f max = lander.getSceneMax() + lander.getPosition();
-
-		Box bounds = Box(Vector3(min.x, min.y, min.z), Vector3(max.x, max.y, max.z));
-
-		colBoxList.clear();
-		octree.intersect(bounds, octree.root, colBoxList);
+		
+		// Note: Collision detection is now handled in update() which recomputes
+		// lander bounding box correctly using model matrix transformation
+		// The old code here used incorrect bounding box calculation
 	
 
 		/*if (bounds.overlap(testBox)) {
@@ -756,6 +916,9 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 //		lander.setScale(.1, .1, .1);
 	//	lander.setPosition(point.x, point.y, point.z);
 		lander.setPosition(1, 1, 0);
+		
+		// Fix lander orientation - rotate 180 degrees around X axis to fix upside-down issue
+		lander.setRotation(0, 180, 1, 0, 0);
 
 		bLanderLoaded = true;
 		bboxList.clear();
@@ -786,13 +949,15 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 		bLanderLoaded = true;
 		lander.setScaleNormalization(false);
 		lander.setPosition(0, 0, 0);
+		
+		// Fix lander orientation - rotate 180 degrees around X axis to fix upside-down issue
+		lander.setRotation(0, 180, 1, 0, 0);
+		
 		cout << "number of meshes: " << lander.getNumMeshes() << endl;
 		bboxList.clear();
 		for (int i = 0; i < lander.getMeshCount(); i++) {
 			bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
 		}
-
-		//		lander.setRotation(1, 180, 1, 0, 0);
 
 				// We want to drag and drop a 3D object in space so that the model appears 
 				// under the mouse pointer where you drop it !
