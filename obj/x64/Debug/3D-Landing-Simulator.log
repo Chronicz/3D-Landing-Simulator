@@ -1,44 +1,5 @@
 ﻿  Scanning sources for module dependencies...
-  main.cpp
-  ofApp.cpp
-  Octree.cpp
-  box.cc
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\vector3.h(20,20): warning C4244: 'return': conversion from 'double' to 'float', possible loss of data
-  (compiling source file 'src/box.cc')
-  
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(66,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(275,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(417,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(925,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(914,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(958,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(948,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1667,21): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
-  (compiling source file 'src/Octree.cpp')
-      C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1667,21):
-      the template instantiation context (the oldest one first) is
-          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\of3dPrimitives.h(71,20):
-          see reference to class template instantiation 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>' being compiled
-          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(524,53):
-          while compiling class template member function 'size_t ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getNumVertices(void) const'
-              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\Octree.cpp(37,8):
-              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getNumVertices' in 'Octree::meshBounds'
-          C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1649,83):
-          while compiling class template member function 'const std::vector<ofMeshFace_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>,std::allocator<ofMeshFace_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>>> &ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getUniqueFaces(void) const'
-              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1637,44):
-              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getUniqueFaces' in 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getFace'
-              C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\Octree.cpp(102,26):
-              see the first reference to 'ofMesh_<ofDefaultVertexType,ofDefaultNormalType,ofDefaultColorType,ofDefaultTexCoordType>::getFace' in 'Octree::getMeshFacesInBox'
-  
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1669,21): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
-  (compiling source file 'src/Octree.cpp')
-  
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1671,23): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
-  (compiling source file 'src/Octree.cpp')
-  
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\libs\openFrameworks\3d\ofMesh.inl(1673,20): warning C4267: 'argument': conversion from 'size_t' to 'ofIndexType', possible loss of data
-  (compiling source file 'src/Octree.cpp')
-  
+  Lander.cpp
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(void)" (??0xml_attribute@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(struct pugi::xml_attribute_struct *)" (??0xml_attribute@pugi@@QEAA@PEAUxml_attribute_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored

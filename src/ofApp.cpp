@@ -15,6 +15,8 @@
 #include <algorithm>  // For std::min
 #include <cmath>      // For std::abs
 #include <float.h>    // For FLT_MAX
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 
 //--------------------------------------------------------------
@@ -293,12 +295,50 @@ Box ofApp::computeLanderWorldBounds() {
 }
 
 void ofApp::update() {
-	// Clear previous collision results
-	collidingBoxes.clear();
-	allCollidingBoxes.clear();
+	// Physics mode: Update LEM physics and apply to model
+	if (bPhysicsEnabled && bLanderLoaded) {
+		// Get delta time in seconds - ensure it's valid
+		float dt = ofGetLastFrameTime();
+		
+		// Ensure dt is valid (not zero or negative)
+		if (dt <= 0.0f || dt > 0.1f) {
+			dt = 1.0f / 60.0f;  // Default to 60 FPS if invalid
+		}
+		
+		// Update physics
+		landerPhysics.update(dt, moveForward, moveBack, moveLeft, moveRight, thrustUp, rotateCCW, rotateCW);
+		
+		// Update lander model position and rotation
+		lander.setPosition(landerPhysics.position.x, landerPhysics.position.y, landerPhysics.position.z);
+		
+		// Set rotation: The lander model needs a 180-degree X rotation plus yaw rotation
+		// Rotation 0: 180 degrees around X-axis (base orientation fix)
+		lander.setRotation(0, 180, 1, 0, 0);
+		// Rotation 1: Yaw rotation around Y-axis
+		lander.setRotation(1, landerPhysics.yaw, 0, 1, 0);
+		
+		// Check for collision with terrain (only compute bounds when needed)
+		landerBox = computeLanderWorldBounds();
+		octree.intersect(landerBox, octree.root, collidingBoxes);
+		
+		// If collision detected, stop downward velocity and position lander on surface
+		// IMPORTANT: Only stop downward velocity, allow upward thrust to work
+		if (!collidingBoxes.empty() && !landerPhysics.bDisableCollisionClamping) {
+			if (landerPhysics.velocity.y < 0) {
+				// Only stop downward velocity when landing
+				landerPhysics.velocity.y = 0;
+			}
+		}
+	}
+	else {
+		// Clear collision results when not in physics mode
+		collidingBoxes.clear();
+		allCollidingBoxes.clear();
+	}
 	
-	// Run collision test ONLY during drag
-	if (bInDrag && bLanderLoaded) {
+	// Run collision test ONLY during drag (non-physics mode)
+	// Skip entirely if physics mode is enabled
+	if (bInDrag && bLanderLoaded && !bPhysicsEnabled) {
 		// Compute lander bounding box in world space
 		landerBox = computeLanderWorldBounds();
 		
@@ -622,16 +662,52 @@ void ofApp::drawAxis(ofVec3f location) {
 
 
 void ofApp::keyPressed(int key) {
+	// Handle LEM physics controls when physics mode is enabled
+	// Process these FIRST to avoid conflicts with other key handlers
+	bool physicsKeyHandled = false;
+	if (bPhysicsEnabled && bLanderLoaded) {
+		switch (key) {
+		case 'w':
+		case 'W':
+			moveForward = true;
+			physicsKeyHandled = true;
+			break;
+		case 's':
+		case 'S':
+			moveBack = true;
+			physicsKeyHandled = true;
+			break;
+		case 'a':
+		case 'A':
+			moveLeft = true;
+			physicsKeyHandled = true;
+			break;
+		case 'd':
+		case 'D':
+			moveRight = true;
+			physicsKeyHandled = true;
+			break;
+		case ' ':  // Spacebar (ASCII 32)
+			thrustUp = true;
+			physicsKeyHandled = true;
+			break;
+		case 'q':
+		case 'Q':
+			rotateCCW = true;
+			physicsKeyHandled = true;
+			break;
+		case 'e':
+		case 'E':
+			rotateCW = true;
+			physicsKeyHandled = true;
+			break;
+		}
+	}
 
 	switch (key) {
 	case 'B':
 	case 'b':
 		bDisplayBBoxes = !bDisplayBBoxes;
-		break;
-	case 'C':
-	case 'c':
-		if (cam.getMouseInputEnabled()) cam.disableMouseInput();
-		else cam.enableMouseInput();
 		break;
 	case 'F':
 	case 'f':
@@ -648,18 +724,67 @@ void ofApp::keyPressed(int key) {
 	case 'o':
 		bDisplayOctree = !bDisplayOctree;
 		break;
+	case 'P':
+	case 'p':
+		// Toggle physics mode
+		if (bLanderLoaded) {
+			bPhysicsEnabled = !bPhysicsEnabled;
+			if (bPhysicsEnabled) {
+				// Initialize physics at current lander position
+				glm::vec3 currentPos = lander.getPosition();
+				landerPhysics.initialize(currentPos);
+				// Reset all input flags
+				moveForward = moveBack = moveLeft = moveRight = false;
+				thrustUp = rotateCCW = rotateCW = false;
+				cout << "\n=== PHYSICS MODE ENABLED ===" << endl;
+				cout << "Controls: W/S (forward/back), A/D (left/right), SPACEBAR (thrust), Q/E (rotate)" << endl;
+			} else {
+				// Reset input states
+				moveForward = moveBack = moveLeft = moveRight = false;
+				thrustUp = rotateCCW = rotateCW = false;
+				cout << "\n=== PHYSICS MODE DISABLED ===" << endl;
+			}
+		} else {
+			cout << "ERROR: Cannot enable physics mode - lander not loaded!" << endl;
+		}
+		break;
+	case 'T':
+	case 't':
+		// Toggle extreme forces for testing (only in physics mode)
+		if (bPhysicsEnabled && bLanderLoaded) {
+			landerPhysics.bExtremeForces = !landerPhysics.bExtremeForces;
+		} else if (!bPhysicsEnabled) {
+			// If physics not enabled, use 't' for camera target (original behavior)
+			setCameraTarget();
+		}
+		break;
+	case 'C':
+	case 'c':
+		// Toggle collision clamping disable for testing (only in physics mode)
+		if (bPhysicsEnabled && bLanderLoaded) {
+			landerPhysics.bDisableCollisionClamping = !landerPhysics.bDisableCollisionClamping;
+		} else if (!bPhysicsEnabled) {
+			// If physics not enabled, use 'c' for camera toggle (original behavior)
+			if (cam.getMouseInputEnabled()) cam.disableMouseInput();
+			else cam.enableMouseInput();
+		}
+		break;
 	case 'D':
 	case 'd':
-		bDebugOctreeAlignment = !bDebugOctreeAlignment;
+		// Only handle if not a physics control key
+		if (!physicsKeyHandled && !bPhysicsEnabled) {
+			bDebugOctreeAlignment = !bDebugOctreeAlignment;
+		}
 		break;
 	case 'r':
 		cam.reset();
 		break;
 	case 's':
-		savePicture();
-		break;
-	case 't':
-		setCameraTarget();
+	case 'S':
+		// Only handle if not a physics control key
+		if (!physicsKeyHandled && !bPhysicsEnabled) {
+			savePicture();
+		}
 		break;
 	case 'u':
 		break;
@@ -669,7 +794,11 @@ void ofApp::keyPressed(int key) {
 	case 'V':
 		break;
 	case 'w':
-		toggleWireframeMode();
+	case 'W':
+		// Only handle if not a physics control key
+		if (!physicsKeyHandled && !bPhysicsEnabled) {
+			toggleWireframeMode();
+		}
 		break;
 	case OF_KEY_ALT:
 		cam.enableMouseInput();
@@ -700,6 +829,46 @@ void ofApp::togglePointsDisplay() {
 }
 
 void ofApp::keyReleased(int key) {
+	// Handle LEM physics controls when physics mode is enabled
+	bool physicsKeyHandled = false;
+	if (bPhysicsEnabled && bLanderLoaded) {
+		switch (key) {
+		case 'w':
+		case 'W':
+			moveForward = false;
+			physicsKeyHandled = true;
+			break;
+		case 's':
+		case 'S':
+			moveBack = false;
+			physicsKeyHandled = true;
+			break;
+		case 'a':
+		case 'A':
+			moveLeft = false;
+			physicsKeyHandled = true;
+			break;
+		case 'd':
+		case 'D':
+			moveRight = false;
+			physicsKeyHandled = true;
+			break;
+		case ' ':  // Spacebar (ASCII 32)
+			thrustUp = false;
+			physicsKeyHandled = true;
+			break;
+		case 'q':
+		case 'Q':
+			rotateCCW = false;
+			physicsKeyHandled = true;
+			break;
+		case 'e':
+		case 'E':
+			rotateCW = false;
+			physicsKeyHandled = true;
+			break;
+		}
+	}
 
 	switch (key) {
 	
@@ -738,9 +907,9 @@ void ofApp::mousePressed(int x, int y, int button) {
 //
 	if (cam.getMouseInputEnabled()) return;
 
-	// if rover is loaded, test for selection
+	// if rover is loaded, test for selection (only in non-physics mode)
 	//
-	if (bLanderLoaded) {
+	if (bLanderLoaded && !bPhysicsEnabled) {
 		glm::vec3 origin = cam.getPosition();
 		glm::vec3 mouseWorld = cam.screenToWorld(glm::vec3(mouseX, mouseY, 0));
 		glm::vec3 mouseDir = glm::normalize(mouseWorld - origin);
@@ -791,6 +960,9 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	// if moving camera, don't allow mouse interaction
 	//
 	if (cam.getMouseInputEnabled()) return;
+
+	// Disable drag in physics mode
+	if (bPhysicsEnabled) return;
 
 	if (bInDrag) {
 		glm::vec3 landerPos = lander.getPosition();
@@ -995,6 +1167,9 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 			glm::vec3 max = lander.getSceneMax();
 			float offset = (max.y - min.y) / 2.0;
 			lander.setPosition(intersectPointGlm.x, intersectPointGlm.y - offset, intersectPointGlm.z);
+
+			// Initialize physics at this position
+			landerPhysics.initialize(glm::vec3(intersectPointGlm.x, intersectPointGlm.y - offset, intersectPointGlm.z));
 
 			// set up bounding box for lander while we are at it
 			//

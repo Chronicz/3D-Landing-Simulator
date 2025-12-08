@@ -4,6 +4,7 @@
 #include "ofxGui.h"
 #include  "ofxAssimpModelLoader.h"
 #include "Octree.h"
+#include "Lander.h"
 
 
 
@@ -75,8 +76,19 @@ class ofApp : public ofBaseApp{
 		ofVec3f selectedPoint;
 		ofVec3f intersectPoint;
 
-		vector<Box> bboxList;
-		vector<ofColor> levelColors;  // Colors for different octree levels
+	vector<Box> bboxList;
+	vector<ofColor> levelColors;  // Colors for different octree levels
 
-		const float selectionRange = 4.0;
+	const float selectionRange = 4.0;
+	
+	// LEM Physics & Controls
+	Lander landerPhysics;
+	bool moveForward = false;
+	bool moveBack = false;
+	bool moveLeft = false;
+	bool moveRight = false;
+	bool thrustUp = false;
+	bool rotateCCW = false;
+	bool rotateCW = false;
+	bool bPhysicsEnabled = false;  // Toggle physics mode vs drag mode
 };
