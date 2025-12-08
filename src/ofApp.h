@@ -39,10 +39,18 @@ class ofApp : public ofBaseApp{
 		glm::vec3 getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 		Box computeLanderWorldBounds();  // Helper to compute lander bounding box in world space
 
-		ofEasyCam cam;
-		ofxAssimpModelLoader mars, lander;
-		ofLight light;
-		Box boundingBox, landerBounds;
+	ofEasyCam cam;
+	ofxAssimpModelLoader mars, lander;
+	ofLight light;
+	
+	// Lighting system - 4 lights
+	ofLight sunLight;           // Light 1: Directional sunlight
+	ofLight ambientFillLight;   // Light 2: Ambient fill light
+	ofLight cameraLight;        // Light 3: Point light near camera
+	ofLight landerSpotlight;    // Light 4: Toggleable lander spotlight
+	bool bLanderLightOn;        // Toggle state for lander spotlight
+	
+	Box boundingBox, landerBounds;
 		Box testBox;
 		vector<Box> colBoxList;
 		Box landerBox;                     // Updated when dragging lander
@@ -83,6 +91,10 @@ class ofApp : public ofBaseApp{
 	vector<ofColor> levelColors;  // Colors for different octree levels
 
 	const float selectionRange = 4.0;
+	
+	// FIX: Store terrain model matrix to ensure consistency
+	glm::mat4 marsModelMatrix;  // Terrain's model matrix at octree build time
+	bool bOctreeBuilt;          // Flag to verify octree was built successfully
 	
 	// LEM Physics & Controls
 	Lander landerPhysics;

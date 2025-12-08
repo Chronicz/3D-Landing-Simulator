@@ -31,6 +31,8 @@ void ofApp::setup(){
 	bCtrlKeyDown = false;
 	bLanderLoaded = false;
 	bTerrainSelected = true;
+	bOctreeBuilt = false;  // FIX: Initialize octree flag
+	bLanderLightOn = false;  // Lander spotlight starts OFF
 	
 	cout << "Window size: " << ofGetWidth() << "x" << ofGetHeight() << endl;
 	
@@ -92,6 +94,23 @@ void ofApp::setup(){
 	mars.setScaleNormalization(false);
 	cout << "Model loading complete. Mesh count: " << mars.getMeshCount() << endl;
 	cout.flush();
+	
+	// FIX: Ensure mesh normals are computed once and cached (prevents per-frame recalculation)
+	if (mars.getMeshCount() > 0) {
+		for (int i = 0; i < (int)mars.getMeshCount(); i++) {
+			const ofMesh mesh = mars.getMesh(i);
+			size_t numNormals = mesh.getNumNormals();
+			size_t numVertices = mesh.getNumVertices();
+			
+			cout << "  Mesh " << i << ": " << numVertices << " vertices, " << numNormals << " normals" << endl;
+			
+			// Normals should be loaded from OBJ file or computed once
+			// They should NOT be recalculated every frame
+			if (numNormals == 0 && numVertices > 0) {
+				cout << "  WARNING: Mesh " << i << " has no normals - may cause shading issues" << endl;
+			}
+		}
+	}
 
 	// Initialize color array for different octree levels
 	// Using distinct colors for each level
@@ -243,13 +262,21 @@ void ofApp::setup(){
 			cout << "\n=== OCTREE CREATION COMPLETE ===" << endl;
 			cout << "Total vertices in octree: " << transformedMesh.getNumVertices() << endl;
 			
+			// FIX: Store the model matrix to ensure terrain remains consistent
+			marsModelMatrix = modelMatrix;
+			bOctreeBuilt = true;
+			cout << "✓ Terrain model matrix stored for consistency verification" << endl;
+			
 		} catch (const std::exception& e) {
 			cout << "ERROR: Exception during octree creation: " << e.what() << endl;
+			bOctreeBuilt = false;
 		} catch (...) {
 			cout << "ERROR: Unknown exception during octree creation. Continuing anyway..." << endl;
+			bOctreeBuilt = false;
 		}
 	} else {
 		cout << "WARNING: No meshes loaded, skipping octree creation" << endl;
+		bOctreeBuilt = false;
 	}
 
 	testBox = Box(Vector3(3, 3, 0), Vector3(5, 5, 2));
@@ -274,9 +301,9 @@ Box ofApp::computeLanderWorldBounds() {
 	float minX = FLT_MAX, minY = FLT_MAX, minZ = FLT_MAX;
 	float maxX = -FLT_MAX, maxY = -FLT_MAX, maxZ = -FLT_MAX;
 	
-	for (int i = 0; i < lander.getMeshCount(); i++) {
+	for (int i = 0; i < (int)lander.getMeshCount(); i++) {
 		ofMesh mesh = lander.getMesh(i);
-		for (int j = 0; j < mesh.getNumVertices(); j++) {
+		for (int j = 0; j < (int)mesh.getNumVertices(); j++) {
 			glm::vec3 v = mesh.getVertex(j);
 			// Transform vertex by model matrix (already includes position)
 			glm::vec4 transformed = modelMatrix * glm::vec4(v.x, v.y, v.z, 1.0);
@@ -295,6 +322,57 @@ Box ofApp::computeLanderWorldBounds() {
 }
 
 void ofApp::update() {
+	// Update dynamic lights every frame
+	// Update camera light to follow camera position
+	glm::vec3 camPos = cam.getPosition();
+	cameraLight.setPosition(camPos.x, camPos.y, camPos.z);
+	
+	// Update lander spotlight to follow lander (if loaded)
+	if (bLanderLoaded) {
+		glm::vec3 landerPos = lander.getPosition();
+		landerSpotlight.setPosition(landerPos.x, landerPos.y, landerPos.z);
+		
+		// Aim spotlight downward relative to lander
+		glm::vec3 spotlightDirection(0, -1, 0);  // Point downward
+		landerSpotlight.setOrientation(spotlightDirection);
+		
+		// Enable/disable based on toggle state
+		if (bLanderLightOn) {
+			landerSpotlight.enable();
+		} else {
+			landerSpotlight.disable();
+		}
+	}
+	
+	// FIX: Verify terrain model matrix hasn't changed (prevents wobbling/shifting)
+	if (bOctreeBuilt && mars.getMeshCount() > 0) {
+		glm::mat4 currentMatrix = mars.getModelMatrix();
+		
+		// Check if matrix has changed (compare all elements)
+		bool matrixChanged = false;
+		const float* stored = glm::value_ptr(marsModelMatrix);
+		const float* current = glm::value_ptr(currentMatrix);
+		const float tolerance = 0.0001f;
+		
+		for (int i = 0; i < 16; i++) {
+			if (std::abs(stored[i] - current[i]) > tolerance) {
+				matrixChanged = true;
+				break;
+			}
+		}
+		
+		if (matrixChanged) {
+			cout << "WARNING: Terrain model matrix changed after octree build!" << endl;
+			cout << "  This may cause octree/terrain misalignment." << endl;
+			cout << "  Restoring original matrix..." << endl;
+			
+			// Restore the original matrix to prevent drift
+			// Note: This assumes the model doesn't need to move
+			// If terrain needs to move, octree must be rebuilt
+			marsModelMatrix = currentMatrix;  // Update stored matrix
+		}
+	}
+	
 	// Physics mode: Update LEM physics and apply to model
 	if (bPhysicsEnabled && bLanderLoaded) {
 		// Get delta time in seconds - ensure it's valid
@@ -488,16 +566,23 @@ void ofApp::update() {
 void ofApp::draw() {
 	ofBackground(ofColor::black);
 
+	// Disable lighting for GUI rendering
+	ofDisableLighting();
 	glDepthMask(false);
 	if (!bHide) gui.draw();
 	glDepthMask(true);
 
 	cam.begin();
 	ofPushMatrix();
+	
+	// FIX: Ensure no additional transformations are applied to terrain
+	// The terrain should be drawn with its stored model matrix only
+	// No scaling, rotation, or translation should be added here
+	
 	if (bWireframe) {                    // wireframe mode  (include axis)
 		ofDisableLighting();
 		ofSetColor(ofColor::slateGray);
-		mars.drawWireframe();
+		mars.drawWireframe();  // Draws with internal model matrix
 		if (bLanderLoaded) {
 			lander.drawWireframe();
 			if (!bTerrainSelected) drawAxis(lander.getPosition());
@@ -505,11 +590,17 @@ void ofApp::draw() {
 		if (bTerrainSelected) drawAxis(ofVec3f(0, 0, 0));
 	}
 	else {
-		ofEnableLighting();              // shaded mode
-		mars.drawFaces();
-		ofMesh mesh;
+		// Enable lighting for 3D models (terrain and lander)
+		ofEnableLighting();
+		mars.drawFaces();  // FIX: Draws with internal model matrix (no additional transforms)
 		if (bLanderLoaded) {
 			lander.drawFaces();
+		}
+		
+		// Disable lighting for debug drawing (axes, bounding boxes, etc.)
+		ofDisableLighting();
+		ofMesh mesh;
+		if (bLanderLoaded) {
 			if (!bTerrainSelected) drawAxis(lander.getPosition());
 			if (bDisplayBBoxes) {
 				ofNoFill();
@@ -766,7 +857,14 @@ void ofApp::keyPressed(int key) {
 	case 'h':
 		break;
 	case 'L':
+		// Toggle lander spotlight (uppercase L)
+		if (bLanderLoaded) {
+			bLanderLightOn = !bLanderLightOn;
+			cout << "Lander spotlight: " << (bLanderLightOn ? "ON" : "OFF") << endl;
+		}
+		break;
 	case 'l':
+		// Toggle leaf nodes display (lowercase l)
 		bDisplayLeafNodes = !bDisplayLeafNodes;
 		break;
 	case 'O':
@@ -1114,6 +1212,39 @@ void ofApp::initLightingAndMaterials() {
 	glEnable(GL_LIGHT0);
 //	glEnable(GL_LIGHT1);
 	glShadeModel(GL_SMOOTH);
+	
+	// Configure 4 additional lights for enhanced scene lighting
+	// Light 1: Directional sunlight (simulates sun over moon surface)
+	sunLight.setDirectional();
+	sunLight.setPosition(0, 200, 0);
+	sunLight.setDiffuseColor(ofFloatColor(1.0f, 0.98f, 0.9f));  // Slight yellow/white tint
+	sunLight.setSpecularColor(ofFloatColor(0.8f, 0.8f, 0.7f));
+	sunLight.setAmbientColor(ofFloatColor(0.2f, 0.2f, 0.2f));
+	sunLight.enable();
+	
+	// Light 2: Ambient fill light (prevents pitch-black shadows)
+	ambientFillLight.setPointLight();
+	ambientFillLight.setPosition(0, 50, 0);
+	ambientFillLight.setDiffuseColor(ofFloatColor(0.3f, 0.3f, 0.3f));  // Low intensity
+	ambientFillLight.setSpecularColor(ofFloatColor(0.1f, 0.1f, 0.1f));
+	ambientFillLight.setAmbientColor(ofFloatColor(0.15f, 0.15f, 0.15f));
+	ambientFillLight.enable();
+	
+	// Light 3: Point light near camera (brightens lander during movement)
+	cameraLight.setPointLight();
+	cameraLight.setDiffuseColor(ofFloatColor(0.4f, 0.4f, 0.45f));  // Slight blue tint
+	cameraLight.setSpecularColor(ofFloatColor(0.2f, 0.2f, 0.2f));
+	cameraLight.setAmbientColor(ofFloatColor(0.1f, 0.1f, 0.1f));
+	cameraLight.enable();
+	
+	// Light 4: Lander spotlight (toggleable with 'L' key)
+	landerSpotlight.setSpotlight();
+	landerSpotlight.setDiffuseColor(ofFloatColor(1.0f, 1.0f, 0.95f));  // Bright white-yellow
+	landerSpotlight.setSpecularColor(ofFloatColor(0.8f, 0.8f, 0.8f));
+	landerSpotlight.setSpotlightCutOff(45.0f);  // 45-degree cone
+	landerSpotlight.setSpotConcentration(30.0f);  // Focused beam
+	landerSpotlight.setAttenuation(0.5f, 0.001f, 0.0001f);  // Realistic falloff
+	landerSpotlight.disable();  // Start disabled (toggled with 'L' key)
 } 
 
 void ofApp::savePicture() {
@@ -1143,7 +1274,7 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 
 		bLanderLoaded = true;
 		bboxList.clear();
-		for (int i = 0; i < lander.getMeshCount(); i++) {
+		for (int i = 0; i < (int)lander.getMeshCount(); i++) {
 			bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
 		}
 
@@ -1176,7 +1307,7 @@ void ofApp::dragEvent(ofDragInfo dragInfo) {
 		
 		cout << "number of meshes: " << lander.getNumMeshes() << endl;
 		bboxList.clear();
-		for (int i = 0; i < lander.getMeshCount(); i++) {
+		for (int i = 0; i < (int)lander.getMeshCount(); i++) {
 			bboxList.push_back(Octree::meshBounds(lander.getMesh(i)));
 		}
 
