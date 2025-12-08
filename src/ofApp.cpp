@@ -319,14 +319,78 @@ void ofApp::update() {
 		
 		// Check for collision with terrain (only compute bounds when needed)
 		landerBox = computeLanderWorldBounds();
-		octree.intersect(landerBox, octree.root, collidingBoxes);
+		intersected = octree.intersect(lander.getPosition(), octree.root, node, 1);
 		
-		// If collision detected, stop downward velocity and position lander on surface
-		// IMPORTANT: Only stop downward velocity, allow upward thrust to work
+		// Visual debugging: Collect intersecting leaf nodes (same as drag mode)
+		// Use existing octree.intersect() method to collect ONLY leaf nodes that overlap landerBox
+		collidingBoxes.clear();
+		allCollidingBoxes.clear();
+		octree.intersect(landerBox, octree.root, collidingBoxes);
+		// Also collect all overlapping nodes for debugging (same as drag mode)
+		octree.intersectAll(landerBox, octree.root, allCollidingBoxes);
+		
+		// If no leaf nodes found but we have overlapping nodes, add small intermediate nodes as fallback
+		// This ensures highlights are visible even at lower octree levels (same as drag mode)
+		if (collidingBoxes.empty() && !allCollidingBoxes.empty()) {
+			// Calculate lander size for comparison
+			Vector3 landerMin = landerBox.min();
+			Vector3 landerMax = landerBox.max();
+			float landerSizeX = landerMax.x() - landerMin.x();
+			float landerSizeY = landerMax.y() - landerMin.y();
+			float landerSizeZ = landerMax.z() - landerMin.z();
+			float landerMaxSize = std::max(landerSizeX, std::max(landerSizeY, landerSizeZ));
+			
+			// Add intermediate nodes that are smaller than lander as temporary highlights
+			// This helps visualize collisions when octree level is too low to have leaf nodes
+			for (const auto &nodeBox : allCollidingBoxes) {
+				Vector3 nodeMin = nodeBox.min();
+				Vector3 nodeMax = nodeBox.max();
+				float nodeSizeX = nodeMax.x() - nodeMin.x();
+				float nodeSizeY = nodeMax.y() - nodeMin.y();
+				float nodeSizeZ = nodeMax.z() - nodeMin.z();
+				float nodeMaxSize = std::max(nodeSizeX, std::max(nodeSizeY, nodeSizeZ));
+				
+				// If node is significantly smaller than lander, treat it as a highlight candidate
+				if (nodeMaxSize < landerMaxSize * 0.8f) {
+					collidingBoxes.push_back(nodeBox);
+				}
+			}
+		}
+		
+		// Collision handling with positional correction to prevent sinking
 		if (!collidingBoxes.empty() && !landerPhysics.bDisableCollisionClamping) {
-			if (landerPhysics.velocity.y < 0) {
-				// Only stop downward velocity when landing
-				landerPhysics.velocity.y = 0;
+			// Find the highest terrain surface (maxY) from all intersecting leaf nodes
+			float highestTerrainY = -FLT_MAX;
+			for (const auto &terrainBox : collidingBoxes) {
+				float terrainMaxY = terrainBox.max().y();
+				if (terrainMaxY > highestTerrainY) {
+					highestTerrainY = terrainMaxY;
+				}
+			}
+			
+			// Get the bottom of the lander bounding box (minY)
+			float landerBottomY = landerBox.min().y();
+			
+			// If lander's bottom is below terrain surface, push it up
+			if (landerBottomY < highestTerrainY) {
+				// Calculate how much to push the lander up
+				float pushUpAmount = highestTerrainY - landerBottomY;
+				
+				// Adjust lander position upward
+				landerPhysics.position.y += pushUpAmount;
+				
+				// Zero out Y velocity to prevent further sinking
+				landerPhysics.velocity.y = 0.0f;
+				
+				// Update lander model position with corrected position
+				lander.setPosition(landerPhysics.position.x, landerPhysics.position.y, landerPhysics.position.z);
+				
+				// Recompute landerBox with corrected position for next frame
+				landerBox = computeLanderWorldBounds();
+			}
+			// If lander is above terrain but velocity is downward, stop downward velocity
+			else if (landerPhysics.velocity.y < 0) {
+				landerPhysics.velocity.y = 0.0f;
 			}
 		}
 	}
@@ -523,28 +587,9 @@ void ofApp::draw() {
 		ofDrawSphere(p, .02 * d.length());
 	}
 	
-	// DEBUG: Draw lander world AABB in red (always visible during drag)
-	if (bInDrag && bLanderLoaded) {
-		ofDisableLighting();
-		ofNoFill();
-		ofSetColor(255, 0, 0);  // Red
-		ofSetLineWidth(2.5);
-		Octree::drawBox(landerBox);
-		ofSetLineWidth(1.0);
-	}
-	
-	// DEBUG: Draw octree root bounding box in blue (always visible during drag)
-	if (bInDrag && bLanderLoaded) {
-		ofDisableLighting();
-		ofNoFill();
-		ofSetColor(0, 0, 255);  // Blue
-		ofSetLineWidth(2.0);
-		Octree::drawBox(octree.root.box);
-		ofSetLineWidth(1.0);
-	}
-	
+
 	// DEBUG: Draw ALL overlapping nodes in faint cyan (for debugging - shows intermediate nodes too)
-	if (bInDrag && !allCollidingBoxes.empty()) {
+	if (!allCollidingBoxes.empty()) {
 		ofDisableLighting();
 		ofNoFill();
 		ofSetColor(100, 255, 255, 150);  // Faint cyan with transparency
@@ -554,18 +599,22 @@ void ofApp::draw() {
 		}
 	}
 	
-	// Draw colliding octree leaf boxes (or small intermediate nodes) in bright yellow during drag
-	// Always visible regardless of octree display mode
-	// This includes both actual leaf nodes and small intermediate nodes as fallback
-	if (bInDrag && !collidingBoxes.empty()) {
+	// Draw colliding octree leaf boxes in bright yellow
+	// Highlights intersecting leaf nodes whenever collidingBoxes is not empty
+	// Draws on top of terrain by disabling depth mask
+	if (!collidingBoxes.empty()) {
+		// Disable depth mask to draw on top of terrain
+		glDepthMask(GL_FALSE);
 		ofDisableLighting();
 		ofNoFill();
-		ofSetColor(255, 255, 0);  // Bright yellow
+		ofSetColor(ofColor::yellow);  // Bright yellow
 		ofSetLineWidth(3.5);
 		for (auto &b : collidingBoxes) {
 			Octree::drawBox(b);
 		}
 		ofSetLineWidth(1.0);
+		// Re-enable depth mask
+		glDepthMask(GL_TRUE);
 		ofSetColor(255, 255, 255);
 	}
 	

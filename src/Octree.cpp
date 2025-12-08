@@ -302,6 +302,23 @@ void Octree::intersect(const Box &target, const TreeNode &node, vector<Box> &res
 	}
 }
 
+bool Octree::intersect(const ofVec3f & v, TreeNode & node, TreeNode & nodeRtn, int level) {
+	if (node.box.inside(Vector3(v.x, v.y, v.z))) {
+		altitude = level;
+		if (node.points.size() == 1) {
+			return true;
+		}
+
+		level++;
+		for (int i = 0; i < node.children.size(); i++) {
+			if (intersect(v, node.children[i], nodeRtn, level))
+				return true;
+		}
+	}
+
+	return false;
+}
+
 // Debug version: collects ALL overlapping nodes (including intermediate) for visualization
 // This is a pure reader function - does not modify octree state
 void Octree::intersectAll(const Box &target, const TreeNode &node, vector<Box> &results) {

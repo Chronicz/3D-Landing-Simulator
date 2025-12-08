@@ -20,6 +20,7 @@ public:
 	Box box;
 	vector<int> points;
 	vector<TreeNode> children;
+
 };
 
 class Octree {
@@ -33,7 +34,7 @@ public:
 	// AABB-based recursive intersection: collects all leaf node boxes that overlap with target box
 	// Pure reader function - does not modify octree state
 	void intersect(const Box &target, const TreeNode &node, vector<Box> &results);
-	
+	bool intersect(const ofVec3f &, TreeNode & node, TreeNode & nodeRtn, int);
 	// Debug version: collects ALL overlapping nodes (including intermediate) for visualization
 	// Pure reader function - does not modify octree state
 	void intersectAll(const Box &target, const TreeNode &node, vector<Box> &results);
@@ -50,6 +51,7 @@ public:
 
 	ofMesh mesh;
 	TreeNode root;
+	float altitude;
 	bool bUseFaces = false;
 
 	// debug;

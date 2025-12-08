@@ -50,9 +50,11 @@ class ofApp : public ofBaseApp{
 		vector<Box> allCollidingBoxes;     // debug: all overlapping nodes including intermediate
 		bool bLanderSelected = false;
 		Octree octree;
+		TreeNode node;
 		TreeNode selectedNode;
 		glm::vec3 mouseDownPos, mouseLastPos;
 		bool bInDrag = false;
+		bool intersected = false;
 
 
 		ofxIntSlider numLevels;
@@ -67,10 +69,11 @@ class ofApp : public ofBaseApp{
 		bool pointSelected = false;
 		bool bDisplayLeafNodes = false;
 		bool bDisplayOctree = false;
-		bool bDisplayBBoxes = false;
-		bool bDebugOctreeAlignment = false;  // Debug visualization toggle
-		
-		bool bLanderLoaded;
+	bool bDisplayBBoxes = false;
+	bool bDebugOctreeAlignment = false;  // Debug visualization toggle
+	bool bDrawCollisionDebug = true;     // Visual debugging for octree collision (highlights intersecting leaf nodes)
+	
+	bool bLanderLoaded;
 		bool bTerrainSelected;
 	
 		ofVec3f selectedPoint;
