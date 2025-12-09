@@ -39,7 +39,7 @@ void ofApp::setup(){
 	cam.setNearClip(.1);
 	cam.setFov(65.5);   // approx equivalent to 28mm in 35mm format
 	ofSetVerticalSync(true);
-	cam.disableMouseInput();
+	//cam.disableMouseInput();  --- commented this out - ronald
 	ofEnableSmoothing();
 	ofEnableDepthTest();
 
@@ -92,6 +92,44 @@ void ofApp::setup(){
 	mars.setScaleNormalization(false);
 	cout << "Model loading complete. Mesh count: " << mars.getMeshCount() << endl;
 	cout.flush();
+
+	// load in image and sound assets - ronald
+	if (backgroundImage.load("background.png")) { // tries bin/data/background.png
+		bBackgroundLoaded = true;
+	} else {
+		bBackgroundLoaded = false;
+		ofLogError() << "Failed to load background.png in " << ofToDataPath("", true);
+
+	}
+
+	// ambient sound loop
+	if (ambientSound.load("ambient.mp3")) { // tries bin/data/ambient.mp3
+		ambientSound.setLoop(true);
+		ambientSound.setVolume(0.2f);
+		ambientSound.play(); // start ambient loop
+		bAmbientLoaded = true;
+		ofLogNotice() << "Ambient sound loaded successfully!";
+
+	} else {
+		bAmbientLoaded = false;
+		ofLogError() << "Failed to load ambient.mp3 in " << ofToDataPath("", true);
+
+	}
+
+	// thrust noise for lander 
+	if (thrustSound.load("spacecraft_thrust.wav")) { // tries bin/data/thrust.mp3
+		thrustSound.setLoop(true); 
+		thrustSound.setMultiPlay(true);
+		thrustSound.setVolume(0.8f);
+		bThrustLoaded = true;
+		ofLogNotice() << "Thrust sound loaded successfully!";
+
+	} else {
+		bThrustLoaded = false;
+		ofLogError() << "Failed to load thrust.mp3 in " << ofToDataPath("", true);
+
+	}
+
 
 	// Initialize color array for different octree levels
 	// Using distinct colors for each level
@@ -255,6 +293,61 @@ void ofApp::setup(){
 	testBox = Box(Vector3(3, 3, 0), Vector3(5, 5, 2));
 	
 	cout << "=== ofApp::setup() completed successfully ===" << endl;
+
+	// --- Load assets from bin/data --- ronald
+	// Background image
+	vector<string> bgCandidates = {"background.png", "bg.png", "mars_bg.png"};
+	// If background was not already loaded earlier, try common filenames in data/
+	if (!bBackgroundLoaded) {
+		for (auto &f : bgCandidates) {
+			if (ofFile::doesFileExist("data/" + f)) {
+				if (backgroundImage.load("data/" + f)) {
+					bBackgroundLoaded = true;
+					cout << "Loaded background image: " << f << endl;
+					break;
+				}
+			}
+		}
+		if (!bBackgroundLoaded) cout << "WARNING: No background image found in data/ (tried background.png, bg.png, mars_bg.png)" << endl;
+	}
+
+	// Ambient sound (loop)
+	// If ambient not already loaded, try common filenames
+	vector<string> ambientCandidates = {"ambient.mp3", "ambient.wav", "ambience.mp3"};
+	if (!bAmbientLoaded) {
+		for (auto &f : ambientCandidates) {
+			if (ofFile::doesFileExist("data/" + f)) {
+				if (ambientSound.load("data/" + f)) {
+					ambientSound.setLoop(true);
+					ambientSound.setVolume(0.6f);
+					ambientSound.play();
+					bAmbientLoaded = true;
+					cout << "Playing ambient sound: " << f << endl;
+					break;
+				}
+			}
+		}
+		if (!bAmbientLoaded) cout << "WARNING: No ambient sound found in data/ (tried ambient.mp3, ambient.wav, ambience.mp3)" << endl;
+	}
+
+	// Thrust sound (loop when space pressed)
+	// If thrust not already loaded, try common filenames
+	vector<string> thrustCandidates = {"thrust.mp3", "thrust.wav", "engine_loop.mp3"};
+	if (!bThrustLoaded) {
+		for (auto &f : thrustCandidates) {
+			if (ofFile::doesFileExist("data/" + f)) {
+				if (thrustSound.load("data/" + f)) {
+				thrustSound.setLoop(true);
+				thrustSound.setMultiPlay(true);
+				thrustSound.setVolume(0.9f);
+					bThrustLoaded = true;
+					cout << "Loaded thrust sound: " << f << " (will play on space)" << endl;
+					break;
+				}
+			}
+		}
+		if (!bThrustLoaded) cout << "WARNING: No thrust sound found in data/ (tried thrust.mp3, thrust.wav, engine_loop.mp3)" << endl;
+	}
 }
  
 //--------------------------------------------------------------
@@ -294,7 +387,94 @@ Box ofApp::computeLanderWorldBounds() {
 	return Box(Vector3(minX, minY, minZ), Vector3(maxX, maxY, maxZ));
 }
 
+// Update camera based on current mode - ronald
+void ofApp::updateCamera() {
+	switch (camMode) {
+	case CAM_FREE:
+	 // free-floating camera, enable to drag with mouse
+		if (!cam.getMouseInputEnabled()) {
+			cam.enableMouseInput(); // Protect free cam from being disabled by other code
+		}
+		break;
+
+	case CAM_SIDE: // side view of lander
+		cam.disableMouseInput(); // every other mode disables mouse input		
+		if (bLanderLoaded) {
+			glm::vec3 landerPos = lander.getPosition(); // get current lander position
+			// place the camera to the side of the lander
+			cam.setPosition(landerPos.x + 200, landerPos.y, landerPos.z);
+			cam.lookAt(landerPos); // always look at lander
+		}
+		break;
+
+	case CAM_TOPDOWN: // view coming from the bottom of the lander - seeing the ground beneath
+		cam.disableMouseInput();
+		if (bLanderLoaded) {
+			glm::vec3 landerPos = lander.getPosition();
+			// place camera above the lander and look down at the terrain beneath it
+			// this produces a top-down view centered on the lander
+			float heightOffset = 50.0f; // adjust as needed for scene scale
+			cam.setPosition(landerPos.x, landerPos.y + heightOffset, landerPos.z);
+			cam.lookAt(landerPos);
+			// debug log
+			ofLogNotice() << "CAM_TOPDOWN pos=" << cam.getPosition() << " target=" << landerPos;
+		}
+		break;
+
+	case CAM_FIRSTPERSON:
+	{
+		cam.disableMouseInput();
+
+		// Position camera in a first-person-ish position slightly behind and above the lander
+		// Use the lander's yaw (from physics) to compute forward direction and offset the camera
+		glm::vec3 landerPos = lander.getPosition();
+		float yaw = landerPhysics.yaw; // degrees
+		float yawRad = glm::radians(yaw);
+		glm::vec3 forwardDir = glm::normalize(glm::vec3(std::sin(yawRad), 0.0f, std::cos(yawRad)));
+
+		float heightOffset = 2.0f;   // how much above the lander origin
+		float fpDistance = 5.0f;     // how far back from the lander to place the camera
+
+		// Place camera in frpmt of the lander (along its forward direction)
+		glm::vec3 camPos = landerPos + glm::vec3(0.0f, heightOffset, 0.0f) + forwardDir * fpDistance;
+
+		cam.setPosition(camPos);
+		// Look ahead in the forward direction so you see the scene in front of the lander
+		float lookAhead = 10.0f; // how far ahead to look
+		cam.lookAt(landerPos + forwardDir * lookAhead + glm::vec3(0.0f, 1.0f, 0.0f), glm::vec3(0, 1, 0));
+	}
+		break;
+
+	case CAM_FREE_FROZEN:
+	{
+		// freeze camera in current position/orientation
+		cam.disableMouseInput();
+		cam.disableMouseMiddleButton();
+		cam.disableMouseMiddleButton();
+		
+		// On the first frame, hard-freeze the pose
+		if (camWasJustFrozen) {
+			cam.setPosition(frozenCamPos);
+			cam.lookAt(frozenCamTarget, frozenCamUp);
+			camWasJustFrozen = false;
+		}
+
+		// Every frame: clamp it so nothing moves it
+		cam.setPosition(frozenCamPos);
+		cam.lookAt(frozenCamTarget, frozenCamUp);
+	}
+	}
+		
+}
+
+
 void ofApp::update() {
+	// sound update - ronald
+	ofSoundUpdate();
+
+	// update camera posiiton/orientation based on mode -ronald
+	updateCamera();
+
 	// Physics mode: Update LEM physics and apply to model
 	if (bPhysicsEnabled && bLanderLoaded) {
 		// Get delta time in seconds - ensure it's valid
@@ -316,6 +496,8 @@ void ofApp::update() {
 		lander.setRotation(0, 180, 1, 0, 0);
 		// Rotation 1: Yaw rotation around Y-axis
 		lander.setRotation(1, landerPhysics.yaw, 0, 1, 0);
+		// Rotation 2: additional fixed flip around Z if model exporter requires it
+		lander.setRotation(2, 180, 0, 0, 1);
 		
 		// Check for collision with terrain (only compute bounds when needed)
 		landerBox = computeLanderWorldBounds();
@@ -486,7 +668,16 @@ void ofApp::update() {
 }
 //--------------------------------------------------------------
 void ofApp::draw() {
-	ofBackground(ofColor::black);
+	// draw 2D background first (if loaded)
+	if (bBackgroundLoaded) {
+		// draw full-screen background
+		ofDisableDepthTest();
+		ofSetColor(255);
+		backgroundImage.draw(0, 0, ofGetWidth(), ofGetHeight());
+		ofEnableDepthTest();
+	} else {
+		ofBackground(ofColor::black);
+	}
 
 	glDepthMask(false);
 	if (!bHide) gui.draw();
@@ -714,6 +905,35 @@ void ofApp::keyPressed(int key) {
 	// Handle LEM physics controls when physics mode is enabled
 	// Process these FIRST to avoid conflicts with other key handlers
 	bool physicsKeyHandled = false;
+	if (bLanderLoaded) { // switch camera modes with number keys - ronald
+		switch (key) {
+		case '1':
+			camMode = CAM_FREE;
+			break;
+		case '2':
+			camMode = CAM_SIDE;
+			break;
+		case '3':
+			camMode = CAM_TOPDOWN;
+			break;
+		case '4':
+			camMode = CAM_FIRSTPERSON;
+			break;
+		case '5':
+			if (camMode != CAM_FREE_FROZEN) {
+				camMode = CAM_FREE_FROZEN;
+
+				cam.disableMouseInput();
+				camWasJustFrozen = true;
+
+				frozenCamPos = cam.getPosition();
+				frozenCamTarget = cam.getTarget().getPosition();
+				frozenCamUp = cam.getUpDir();
+			}
+			break;
+		}
+
+	}
 	if (bPhysicsEnabled && bLanderLoaded) {
 		switch (key) {
 		case 'w':
@@ -737,8 +957,14 @@ void ofApp::keyPressed(int key) {
 			physicsKeyHandled = true;
 			break;
 		case ' ':  // Spacebar (ASCII 32)
+			ofLogNotice() << "Space pressed, isPlaying=" << thrustSound.isPlaying();
 			thrustUp = true;
 			physicsKeyHandled = true;
+			// play thrust loop if available
+			if (bThrustLoaded && !thrustSound.isPlaying()) {
+				thrustSound.play();
+				ofLogNotice() << "Thrust sound started!";
+			}
 			break;
 		case 'q':
 		case 'Q':
@@ -791,6 +1017,8 @@ void ofApp::keyPressed(int key) {
 				// Reset input states
 				moveForward = moveBack = moveLeft = moveRight = false;
 				thrustUp = rotateCCW = rotateCW = false;
+				// stop thrust sound if playing
+				if (bThrustLoaded && thrustSound.isPlaying()) thrustSound.stop();
 				cout << "\n=== PHYSICS MODE DISABLED ===" << endl;
 			}
 		} else {
@@ -903,8 +1131,14 @@ void ofApp::keyReleased(int key) {
 			physicsKeyHandled = true;
 			break;
 		case ' ':  // Spacebar (ASCII 32)
+			ofLogNotice() << "Space released, isPlaying=" << thrustSound.isPlaying();
 			thrustUp = false;
 			physicsKeyHandled = true;
+			// stop thrust loop
+			if (bThrustLoaded && thrustSound.isPlaying()) {
+				thrustSound.stop();
+				ofLogNotice() << "Thrust sound stopped!";
+			}
 			break;
 		case 'q':
 		case 'Q':
@@ -947,14 +1181,37 @@ void ofApp::mouseMoved(int x, int y ){
 
 //--------------------------------------------------------------
 void ofApp::mousePressed(int x, int y, int button) {
+    // Allow dragging only when camera is frozen (camera stays locked while dragging)
+    if (camMode != CAM_FREE_FROZEN) return;
+
+	// Don’t drag if lander isn’t loaded
+	if (!bLanderLoaded) return;
+
+	// Build ray
+	ofVec3f rayStart = cam.getPosition();
+	ofVec3f rayEnd = cam.screenToWorld(ofVec3f(x, y, 1.0));
+
+    // Convert AABB to ofVec3f (use member 'boundingBox')
+    ofVec3f bmin(boundingBox.min().x(), boundingBox.min().y(), boundingBox.min().z());
+    ofVec3f bmax(boundingBox.max().x(), boundingBox.max().y(), boundingBox.max().z());
+
+	// Ray test
+	if (rayIntersectBox(rayStart, rayEnd, bmin, bmax, &dragDepth)) {
+		bDraggingLander = true;
+
+		// Disable camera ONLY WHILE dragging
+		cam.disableMouseInput();
+
+		ofVec3f hit = cam.screenToWorld(ofVec3f(x, y, dragDepth));
+		dragOffset = lander.getPosition() - hit;
+	}
+	// if moving camera, don't allow mouse interaction
+	//
+	//if (cam.getMouseInputEnabled()) return;
 
 	// if moving camera, don't allow mouse interaction
 	//
-	if (cam.getMouseInputEnabled()) return;
-
-	// if moving camera, don't allow mouse interaction
-//
-	if (cam.getMouseInputEnabled()) return;
+	//if (cam.getMouseInputEnabled()) return;
 
 	// if rover is loaded, test for selection (only in non-physics mode)
 	//
@@ -973,16 +1230,15 @@ void ofApp::mousePressed(int x, int y, int button) {
 			mouseDownPos = getMousePointOnPlane(lander.getPosition(), cam.getZAxis());
 			mouseLastPos = mouseDownPos;
 			bInDrag = true;
-		}
-		else {
+		} else {
 			bLanderSelected = false;
 		}
-	}
-	else {
+	} else {
 		ofVec3f p;
 		raySelectWithOctree(p);
 	}
 }
+
 
 bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
 	ofVec3f mouse(mouseX, mouseY);
@@ -1006,9 +1262,8 @@ bool ofApp::raySelectWithOctree(ofVec3f &pointRet) {
 //--------------------------------------------------------------
 void ofApp::mouseDragged(int x, int y, int button) {
 
-	// if moving camera, don't allow mouse interaction
-	//
-	if (cam.getMouseInputEnabled()) return;
+    // allow dragging only when camera is frozen (camera stays locked while dragging) - ronald
+    if (camMode != CAM_FREE_FROZEN) return;
 
 	// Disable drag in physics mode
 	if (bPhysicsEnabled) return;
@@ -1038,13 +1293,37 @@ void ofApp::mouseDragged(int x, int y, int button) {
 	}
 	else {
 		ofVec3f p;
-		raySelectWithOctree(p);
+		// Support alternate dragging method started by ray-box intersection
+		if (bDraggingLander) {
+			// Compute world-space hit at the stored drag depth and apply offset
+			ofVec3f hit = cam.screenToWorld(ofVec3f(x, y, dragDepth));
+			glm::vec3 newPos = glm::vec3(hit.x + dragOffset.x, hit.y + dragOffset.y, hit.z + dragOffset.z);
+			lander.setPosition(newPos.x, newPos.y, newPos.z);
+		} else {
+			raySelectWithOctree(p);
+		}
 	}
 }
 
 //--------------------------------------------------------------
 void ofApp::mouseReleased(int x, int y, int button) {
-	bInDrag = false;
+    bool wasDragging = false;
+
+    if (bInDrag) {
+        bInDrag = false;
+        wasDragging = true;
+    }
+
+    if (bDraggingLander) {
+        bDraggingLander = false;
+        wasDragging = true;
+    }
+
+    // Only re-enable camera mouse input if we are in the free camera mode.
+    // If the camera is frozen, keep mouse input disabled so the camera remains locked.
+    if (wasDragging && camMode == CAM_FREE) {
+        cam.enableMouseInput(); // free cam gets control back -ronald
+    }
 }
 
 
@@ -1140,6 +1419,11 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 		
 		// Fix lander orientation - rotate 180 degrees around X axis to fix upside-down issue
 		lander.setRotation(0, 180, 1, 0, 0);
+		// Ensure upright orientation for models exported with different axes
+		// Try flipping around Y-axis if model still appears upside-down
+		lander.setRotation(2, 180, 0, 1, 0);
+		// Ensure upright orientation for models exported with different axes
+		lander.setRotation(2, 180, 0, 0, 1);
 
 		bLanderLoaded = true;
 		bboxList.clear();

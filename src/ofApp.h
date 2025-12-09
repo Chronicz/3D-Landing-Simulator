@@ -39,7 +39,24 @@ class ofApp : public ofBaseApp{
 		glm::vec3 getMousePointOnPlane(glm::vec3 p , glm::vec3 n);
 		Box computeLanderWorldBounds();  // Helper to compute lander bounding box in world space
 
+		//--ronald -- camera stuff
+		void updateCamera();
+
 		ofEasyCam cam;
+		enum CamMode {
+			CAM_FREE,
+			CAM_SIDE,
+			CAM_TOPDOWN,
+			CAM_FIRSTPERSON,
+			CAM_FREE_FROZEN
+		};
+		CamMode camMode = CAM_FREE;
+
+		glm::vec3 frozenCamPos;
+		glm::vec3 frozenCamTarget;
+		glm::vec3 frozenCamUp;
+		bool camWasJustFrozen = false;
+
 		ofxAssimpModelLoader mars, lander;
 		ofLight light;
 		Box boundingBox, landerBounds;
@@ -55,6 +72,11 @@ class ofApp : public ofBaseApp{
 		glm::vec3 mouseDownPos, mouseLastPos;
 		bool bInDrag = false;
 		bool intersected = false;
+
+		// --ronald -- dragging lander
+		bool bDraggingLander = false;
+		float dragDepth = 0.0f;
+		glm::vec3 dragOffset; // offset between grab point and model origin
 
 
 		ofxIntSlider numLevels;
@@ -94,4 +116,12 @@ class ofApp : public ofBaseApp{
 	bool rotateCCW = false;
 	bool rotateCW = false;
 	bool bPhysicsEnabled = false;  // Toggle physics mode vs drag mode
+
+	// Assets: background image and sounds
+	ofImage backgroundImage;
+	bool bBackgroundLoaded = false;
+	ofSoundPlayer ambientSound;
+	bool bAmbientLoaded = false;
+	ofSoundPlayer thrustSound;
+	bool bThrustLoaded = false;
 };

@@ -1,0 +1,32 @@
+﻿  Scanning sources for module dependencies...
+  ofApp.cpp
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(68,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(370,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(712,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1430,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1414,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1463,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1453,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_node::name(void)const " (?name@xml_node@pugi@@QEBAPEBDXZ) already defined in libassimp.lib(AMFImporter.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_text::get(void)const " (?get@xml_text@pugi@@QEBAPEBDXZ) already defined in libassimp.lib(IRRMeshLoader.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: float __cdecl pugi::xml_text::as_float(float)const " (?as_float@xml_text@pugi@@QEBAMM@Z) already defined in libassimp.lib(AMFImporter_Material.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "private: void __cdecl pugi::xml_document::_destroy(void)" (?_destroy@xml_document@pugi@@AEAAXXZ) already defined in libassimp.lib(ImporterRegistry.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: struct pugi::xml_parse_result __cdecl pugi::xml_document::load_buffer(void const *,unsigned __int64,unsigned int,enum pugi::xml_encoding)" (?load_buffer@xml_document@pugi@@QEAA?AUxml_parse_result@2@PEBX_KIW4xml_encoding@2@@Z) already defined in libassimp.lib(AMFImporter.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node::xpath_node(void)" (??0xpath_node@pugi@@QEAA@XZ) already defined in libassimp.lib(ImporterRegistry.obj); second definition ignored
+     Creating library bin\3D-Landing-Simulator.lib and object bin\3D-Landing-Simulator.exp
+bin\3D-Landing-Simulator.exe : warning LNK4088: image being generated due to /FORCE option; image may not run
+  LINK : /LTCG specified but no code generation required; remove /LTCG from the link command line to improve linker performance
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_node::name(void)const " (?name@xml_node@pugi@@QEBAPEBDXZ) already defined in libassimp.lib(AMFImporter.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: char const * __cdecl pugi::xml_text::get(void)const " (?get@xml_text@pugi@@QEBAPEBDXZ) already defined in libassimp.lib(IRRMeshLoader.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: float __cdecl pugi::xml_text::as_float(float)const " (?as_float@xml_text@pugi@@QEBAMM@Z) already defined in libassimp.lib(AMFImporter_Material.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "private: void __cdecl pugi::xml_document::_destroy(void)" (?_destroy@xml_document@pugi@@AEAAXXZ) already defined in libassimp.lib(ImporterRegistry.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: struct pugi::xml_parse_result __cdecl pugi::xml_document::load_buffer(void const *,unsigned __int64,unsigned int,enum pugi::xml_encoding)" (?load_buffer@xml_document@pugi@@QEAA?AUxml_parse_result@2@PEBX_KIW4xml_encoding@2@@Z) already defined in libassimp.lib(AMFImporter.obj); second definition ignored
+pugixml.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node::xpath_node(void)" (??0xpath_node@pugi@@QEAA@XZ) already defined in libassimp.lib(ImporterRegistry.obj); second definition ignored
+bin\3D-Landing-Simulator.exe : warning LNK4088: image being generated due to /FORCE option; image may not run
+  3D-Landing-Simulator.vcxproj -> C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\bin\3D-Landing-Simulator.exe
+  File not found - *.dll
+  0 File(s) copied
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: The command "
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073:             xcopy /Y /E "C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\dll\x64\*.dll" "C:\Users\ronal\Downloads\of_v0.12.1_vs_64_release\open_frameworks\apps\myApps\3D-Landing-Simulator\bin\"
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073:         
+C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppCommon.targets(166,5): error MSB3073: :VCEnd" exited with code 4.
