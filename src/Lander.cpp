@@ -54,12 +54,12 @@ void Lander::update(float dt, bool moveForward, bool moveBack, bool moveLeft, bo
     float horizontalForceMagnitude = actualHorizontalForce * dt / mass;
     
     // Apply thrust forces based on input
-    // Swap forward/back and left/right to account for 180° X-axis rotation of the model
+    // W/S swapped to match expected forward/back behavior
     if (moveForward) {
-        velocity += localForward * horizontalForceMagnitude;  // Swapped: was += -- swapped again in orientation with front of model, so now back to +=
+        velocity -= localForward * horizontalForceMagnitude;  // W key - move forward (negative direction)
     }
     if (moveBack) {
-        velocity -= localForward * horizontalForceMagnitude;  // Swapped: was -= -- swapped this again, back to -=
+        velocity += localForward * horizontalForceMagnitude;  // S key - move backward (positive direction)
     }
     if (moveLeft) {
         velocity += localRight * horizontalForceMagnitude;    // Swapped: was -=

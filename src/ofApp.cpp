@@ -153,8 +153,8 @@ void ofApp::setup(){
 	// create sliders for testing
 	//
 	gui.setup();
-	// Set max levels to 20 (the value used in octree.create)
-	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, 20));
+	// Set max levels to 10 (the value used in octree.create)
+	gui.add(numLevels.setup("Number of Octree Levels", 1, 1, 10));
 	bHide = false;
 
 	//  Create Octree for testing.
@@ -209,12 +209,22 @@ void ofApp::setup(){
 			// Apply model matrix to all vertices to transform to world space
 			ofMesh transformedMesh = mergedMesh;  // Copy merged mesh
 			cout << "\nE. Applying model matrix transformation..." << endl;
+			int totalVerts = transformedMesh.getNumVertices();
+			cout << "  Transforming " << totalVerts << " vertices..." << endl;
+			cout.flush();
 			
-			for (int i = 0; i < transformedMesh.getNumVertices(); i++) {
+			for (int i = 0; i < totalVerts; i++) {
 				glm::vec3 v = transformedMesh.getVertex(i);
 				glm::vec4 t = modelMatrix * glm::vec4(v.x, v.y, v.z, 1.0);
 				transformedMesh.setVertex(i, glm::vec3(t.x, t.y, t.z));
+				
+				// Progress indicator for large meshes
+				if (totalVerts > 10000 && i % 10000 == 0 && i > 0) {
+					cout << "    Progress: " << i << "/" << totalVerts << " vertices..." << endl;
+					cout.flush();
+				}
 			}
+			cout << "  Transformation complete!" << endl;
 			
 			// Debug: Print first few vertices after transform
 			cout << "  First 5 vertices (after transform):" << endl;
@@ -247,7 +257,9 @@ void ofApp::setup(){
 			
 			// Build octree from transformed mesh (now in world space)
 			cout << "\nG. Building octree..." << endl;
-			octree.create(transformedMesh, 20);
+			cout << "  This may take a moment for large meshes..." << endl;
+			cout.flush();
+			octree.create(transformedMesh, 10);  // Reduced from 20 to 10 levels for faster build
 			
 			// FIX #4: Print debug output to verify correctness
 			Vector3 rootMin = octree.root.box.min();
@@ -488,16 +500,14 @@ void ofApp::update() {
 		// Update physics
 		landerPhysics.update(dt, moveForward, moveBack, moveLeft, moveRight, thrustUp, rotateCCW, rotateCW);
 		
-		// Update lander model position and rotation
+		// Update lander model position
 		lander.setPosition(landerPhysics.position.x, landerPhysics.position.y, landerPhysics.position.z);
 		
-		// Set rotation: The lander model needs a 180-degree X rotation plus yaw rotation
-		// Rotation 0: 180 degrees around X-axis (base orientation fix)
-		lander.setRotation(0, 180, 1, 0, 0);
-		// Rotation 1: Yaw rotation around Y-axis
+		// Apply yaw rotation (rotation around Y-axis only)
+		// The base orientation (180° X-axis flip) is set once during model load
+		// We only update the yaw rotation here to allow Q/E rotation controls
+		// Using index 1 for yaw ensures it doesn't interfere with base orientation (index 0)
 		lander.setRotation(1, landerPhysics.yaw, 0, 1, 0);
-		// Rotation 2: additional fixed flip around Z if model exporter requires it
-		lander.setRotation(2, 180, 0, 0, 1);
 		
 		// Check for collision with terrain (only compute bounds when needed)
 		landerBox = computeLanderWorldBounds();
@@ -1006,12 +1016,17 @@ void ofApp::keyPressed(int key) {
 			bPhysicsEnabled = !bPhysicsEnabled;
 			if (bPhysicsEnabled) {
 				// Initialize physics at current lander position
+				// Preserve current yaw to avoid sudden rotation jump
 				glm::vec3 currentPos = lander.getPosition();
+				float currentYaw = landerPhysics.yaw;  // Preserve existing yaw
 				landerPhysics.initialize(currentPos);
+				landerPhysics.yaw = currentYaw;  // Restore yaw after initialization
 				// Reset all input flags
 				moveForward = moveBack = moveLeft = moveRight = false;
 				thrustUp = rotateCCW = rotateCW = false;
 				cout << "\n=== PHYSICS MODE ENABLED ===" << endl;
+				cout << "[DEBUG] Physics ON, lander position: " << lander.getPosition() << endl;
+				cout << "[DEBUG] Physics ON, lander yaw: " << landerPhysics.yaw << " degrees" << endl;
 				cout << "Controls: W/S (forward/back), A/D (left/right), SPACEBAR (thrust), Q/E (rotate)" << endl;
 			} else {
 				// Reset input states
@@ -1419,11 +1434,6 @@ void ofApp::dragEvent2(ofDragInfo dragInfo) {
 		
 		// Fix lander orientation - rotate 180 degrees around X axis to fix upside-down issue
 		lander.setRotation(0, 180, 1, 0, 0);
-		// Ensure upright orientation for models exported with different axes
-		// Try flipping around Y-axis if model still appears upside-down
-		lander.setRotation(2, 180, 0, 1, 0);
-		// Ensure upright orientation for models exported with different axes
-		lander.setRotation(2, 180, 0, 0, 1);
 
 		bLanderLoaded = true;
 		bboxList.clear();

@@ -1,12 +1,5 @@
 ﻿  Scanning sources for module dependencies...
-  ofApp.cpp
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(68,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(277,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(521,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1146,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1135,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1179,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1169,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+  Lander.cpp
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(void)" (??0xml_attribute@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(struct pugi::xml_attribute_struct *)" (??0xml_attribute@pugi@@QEAA@PEAUxml_attribute_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
