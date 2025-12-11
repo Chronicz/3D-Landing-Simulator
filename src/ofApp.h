@@ -124,4 +124,7 @@ class ofApp : public ofBaseApp{
 	bool bAmbientLoaded = false;
 	ofSoundPlayer thrustSound;
 	bool bThrustLoaded = false;
+	
+	// Altitude display
+	float altitudeAGL;
 };

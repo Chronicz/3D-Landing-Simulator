@@ -31,6 +31,7 @@ void ofApp::setup(){
 	bCtrlKeyDown = false;
 	bLanderLoaded = false;
 	bTerrainSelected = true;
+	altitudeAGL = 0.0f;
 	
 	cout << "Window size: " << ofGetWidth() << "x" << ofGetHeight() << endl;
 	
@@ -596,11 +597,49 @@ void ofApp::update() {
 		
 		// Update particle system
 		landerPhysics.updateParticles(dt);
+		
+		// Update altitude display using downward ray cast
+		if (bLanderLoaded) {
+			// Get lander's bounding box to find the bottom
+			Box landerBounds = computeLanderWorldBounds();
+			float landerBottomY = landerBounds.min().y();
+			
+			glm::vec3 landerPos = lander.getPosition();
+			
+			// Cast downward ray from lander center
+			Ray downRay(Vector3(landerPos.x, landerPos.y, landerPos.z), Vector3(0, -1, 0));
+			TreeNode hitNode;
+			
+			// Find terrain below using octree
+			if (octree.intersect(downRay, octree.root, hitNode)) {
+				// Find the highest point in the hit node
+				float highestTerrainY = -FLT_MAX;
+				for (int idx : hitNode.points) {
+					ofVec3f vertex = octree.mesh.getVertex(idx);
+					if (vertex.y > highestTerrainY) {
+						highestTerrainY = vertex.y;
+					}
+				}
+				
+				// Calculate altitude from lander's BOTTOM to terrain
+				altitudeAGL = landerBottomY - highestTerrainY;
+				
+				// Apply calibration offset (0.6m observed when on ground)
+				altitudeAGL -= 0.6f;
+				
+				// Ensure non-negative
+				if (altitudeAGL < 0) altitudeAGL = 0.0f;
+			} else {
+				// No terrain found below
+				altitudeAGL = 0.0f;
+			}
+		}
 	}
 	else {
 		// Clear collision results when not in physics mode
 		collidingBoxes.clear();
 		allCollidingBoxes.clear();
+		altitudeAGL = 0.0f;
 	}
 	
 	// Run collision test ONLY during drag (non-physics mode)
@@ -703,6 +742,16 @@ void ofApp::draw() {
 	glDepthMask(false);
 	if (!bHide) gui.draw();
 	glDepthMask(true);
+	
+	// Display altitude (AGL) when in physics mode
+	if (bPhysicsEnabled && bLanderLoaded) {
+		// Draw black shadow for readability
+		ofSetColor(0, 0, 0);
+		ofDrawBitmapString("AGL: " + ofToString(altitudeAGL, 1) + " m", 21, 21);
+		// Draw white text
+		ofSetColor(255, 255, 255);
+		ofDrawBitmapString("AGL: " + ofToString(altitudeAGL, 1) + " m", 20, 20);
+	}
 
 	cam.begin();
 	ofPushMatrix();

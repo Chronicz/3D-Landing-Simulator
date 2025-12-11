@@ -1,16 +1,13 @@
 ﻿  Scanning sources for module dependencies...
-  main.cpp
   ofApp.cpp
-  Lander.cpp
-  ParticleEmitter.cpp
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(212,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(68,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(382,20): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(733,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1456,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1445,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1489,21): warning C4018: '<': signed/unsigned mismatch
-C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1479,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(213,19): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(69,9): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(383,20): warning C4018: '<': signed/unsigned mismatch
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(782,6): warning C4996: 'ofRotate': Use ofRotateDeg or ofRotateRad
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1505,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1494,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1538,21): warning C4018: '<': signed/unsigned mismatch
+C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\src\ofApp.cpp(1528,13): warning C4996: 'ofxAssimpModelLoader::loadModel': use load()
 LINK : warning LNK4075: ignoring '/INCREMENTAL' due to '/FORCE' specification
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(void)" (??0xml_attribute@pugi@@QEAA@XZ) already defined in libassimpD.lib(ImporterRegistry.obj); second definition ignored
 pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xml_attribute::xml_attribute(struct pugi::xml_attribute_struct *)" (??0xml_attribute@pugi@@QEAA@PEAUxml_attribute_struct@1@@Z) already defined in libassimpD.lib(AMFImporter.obj); second definition ignored
@@ -81,5 +78,5 @@ pugixmlD.lib(pugixml.obj) : warning LNK4006: "public: __cdecl pugi::xpath_node_s
      Creating library bin\3D-Landing-Simulator_debug.lib and object bin\3D-Landing-Simulator_debug.exp
 bin\3D-Landing-Simulator_debug.exe : warning LNK4088: image being generated due to /FORCE option; image may not run
   3D-Landing-Simulator.vcxproj -> C:\Users\shado\Desktop\of_v0.12.1_vs_64_release\apps\myApps\3D-Landing-Simulator\bin\3D-Landing-Simulator_debug.exe
-  0 File(s) copied
   File not found - *.dll
+  0 File(s) copied
