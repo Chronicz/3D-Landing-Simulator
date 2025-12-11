@@ -1,0 +1,41 @@
+------ ofApp.cpp CHANGES ------
+ADDED (+10 lines):
+
+// explosion sound loop
+if (explosionSound.load("explosion.mp3")) { // tries bin/data/explosion.mp3
+explosionSound.setVolume(0.4f);
+bExplosionLoaded = true;
+ofLogNotice() << "Ambient sound loaded successfully!";
+
+} else {
+bAmbientLoaded = false;
+ofLogError() << "Failed to load ambient.mp3 in " << ofToDataPath("", true);
+}
+
+CHANGED:
+---- ORIGINAL ----
+// Check landing velocity for crash detection
+float landingSpeed = glm::length(landerPhysics.velocity);
+if (landingSpeed > 5.0f) {
+// CRASH! Trigger explosion
+landerPhysics.triggerExplosion();
+explosionSound.play();
+cout << "CRASH! Landing speed: " << landingSpeed << " m/s" << endl;
+}
+
+---- NEW ---- +1 line
+// Check landing velocity for crash detection
+float landingSpeed = glm::length(landerPhysics.velocity);
+if (landingSpeed > 5.0f) {
+// CRASH! Trigger explosion
+landerPhysics.triggerExplosion();
+explosionSound.play();
+cout << "CRASH! Landing speed: " << landingSpeed << " m/s" << endl;
+}
+
+
+------ ofApp.h CHANGES ------
++2 lines (explosion sound vars):
+
+ofSoundPlayer explosionSound;
+bool bExplosionLoaded = false;

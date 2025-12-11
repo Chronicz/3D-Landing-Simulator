@@ -138,6 +138,16 @@ void ofApp::setup(){
 
 	}
 
+	// explosion sound for lander crash
+	if (explosionSound.load("explosion.mp3")) { // tries bin/data/explosion.mp3
+		explosionSound.setVolume(0.4f);
+		bExplosionLoaded = true;
+		ofLogNotice() << "Ambient sound loaded successfully!";
+
+	} else {
+		bAmbientLoaded = false;
+		ofLogError() << "Failed to load ambient.mp3 in " << ofToDataPath("", true);
+	}
 
 	// Initialize color array for different octree levels
 	// Using distinct colors for each level
@@ -585,6 +595,7 @@ void ofApp::update() {
 				if (landingSpeed > 5.0f) {
 					// CRASH! Trigger explosion
 					landerPhysics.triggerExplosion();
+					explosionSound.play();
 					cout << "CRASH! Landing speed: " << landingSpeed << " m/s" << endl;
 				}
 				

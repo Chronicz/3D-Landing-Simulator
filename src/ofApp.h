@@ -117,18 +117,21 @@ class ofApp : public ofBaseApp{
 	bool rotateCW = false;
 	bool bPhysicsEnabled = false;  // Toggle physics mode vs drag mode
 
-	// Assets: background image and sounds
+	// Assets: background image and sounds -ronald
 	ofImage backgroundImage;
 	bool bBackgroundLoaded = false;
 	ofSoundPlayer ambientSound;
 	bool bAmbientLoaded = false;
 	ofSoundPlayer thrustSound;
 	bool bThrustLoaded = false;
-	
-	// Altitude display
+	// explosion sound added
+	ofSoundPlayer explosionSound;
+	bool bExplosionLoaded = false;
+
+	// Altitude display - hei
 	float altitudeAGL;
 	
-	// Fuel system
+	// Fuel system - hei
 	float fuel;
 	float maxFuel;
 	float fuelRegenRate;
