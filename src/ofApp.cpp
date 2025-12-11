@@ -33,6 +33,13 @@ void ofApp::setup(){
 	bTerrainSelected = true;
 	altitudeAGL = 0.0f;
 	
+	// Initialize fuel system
+	maxFuel = 100.0f;
+	fuel = maxFuel;
+	fuelRegenRate = 2.0f;   // 5 units per second
+	fuelBurnRate = 20.0f;   // 20 units per second when thrusting
+	isThrusting = false;
+	
 	cout << "Window size: " << ofGetWidth() << "x" << ofGetHeight() << endl;
 	
 //	ofSetWindowShape(1024, 768);
@@ -498,8 +505,12 @@ void ofApp::update() {
 			dt = 1.0f / 60.0f;  // Default to 60 FPS if invalid
 		}
 		
+		// Check if thrust is allowed based on fuel
+		bool thrustAllowed = thrustUp && fuel > 0;
+		isThrusting = thrustAllowed;
+		
 		// Update physics
-		landerPhysics.update(dt, moveForward, moveBack, moveLeft, moveRight, thrustUp, rotateCCW, rotateCW);
+		landerPhysics.update(dt, moveForward, moveBack, moveLeft, moveRight, thrustAllowed, rotateCCW, rotateCW);
 		
 		// Update lander model position
 		lander.setPosition(landerPhysics.position.x, landerPhysics.position.y, landerPhysics.position.z);
@@ -598,6 +609,15 @@ void ofApp::update() {
 		// Update particle system
 		landerPhysics.updateParticles(dt);
 		
+		// Update fuel system
+		if (isThrusting && fuel > 0) {
+			fuel -= fuelBurnRate * dt;
+			if (fuel < 0) fuel = 0.0f;
+		} else if (!isThrusting && fuel < maxFuel) {
+			fuel += fuelRegenRate * dt;
+			if (fuel > maxFuel) fuel = maxFuel;
+		}
+		
 		// Update altitude display using downward ray cast
 		if (bLanderLoaded) {
 			// Get lander's bounding box to find the bottom
@@ -625,7 +645,7 @@ void ofApp::update() {
 				altitudeAGL = landerBottomY - highestTerrainY;
 				
 				// Apply calibration offset (0.6m observed when on ground)
-				altitudeAGL -= 0.6f;
+				if (altitudeAGL < 1) altitudeAGL = 1;
 				
 				// Ensure non-negative
 				if (altitudeAGL < 0) altitudeAGL = 0.0f;
@@ -751,6 +771,26 @@ void ofApp::draw() {
 		// Draw white text
 		ofSetColor(255, 255, 255);
 		ofDrawBitmapString("AGL: " + ofToString(altitudeAGL, 1) + " m", 20, 20);
+	}
+	
+	// Display fuel underneath altitude
+	if (bPhysicsEnabled && bLanderLoaded) {
+		float fuelPercent = (fuel / maxFuel) * 100.0f;
+		string fuelText = "Fuel: " + ofToString(fuelPercent, 0) + "%";
+		
+		// Draw black shadow for readability
+		ofSetColor(0, 0, 0);
+		ofDrawBitmapString(fuelText, 21, 41);
+		
+		// Draw colored text based on fuel level
+		if (fuelPercent > 50) {
+			ofSetColor(0, 255, 0);  // Green
+		} else if (fuelPercent > 25) {
+			ofSetColor(255, 255, 0);  // Yellow
+		} else {
+			ofSetColor(255, 0, 0);  // Red
+		}
+		ofDrawBitmapString(fuelText, 20, 40);
 	}
 
 	cam.begin();

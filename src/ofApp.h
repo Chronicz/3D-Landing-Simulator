@@ -127,4 +127,11 @@ class ofApp : public ofBaseApp{
 	
 	// Altitude display
 	float altitudeAGL;
+	
+	// Fuel system
+	float fuel;
+	float maxFuel;
+	float fuelRegenRate;
+	float fuelBurnRate;
+	bool isThrusting;
 };
