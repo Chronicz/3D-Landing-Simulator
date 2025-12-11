@@ -22,6 +22,18 @@ Lander::Lander() {
     rotationSpeed = 60.0f;    // 60 degrees per second for smooth rotation
     bExtremeForces = false;   // Set to true for testing (100x forces)
     bDisableCollisionClamping = false;  // Set to true to disable collision velocity clamping
+    
+    // Configure thrust particle emitter
+    thrustEmitter.setEmitterType("cone");
+    thrustEmitter.setDirection(glm::vec3(0, -1, 0));  // Downward
+    thrustEmitter.setConeAngle(25.0f);
+    thrustEmitter.setVelocityRange(3.0f, 6.0f);
+    thrustEmitter.setLifespan(0.3f, 0.8f);
+    thrustEmitter.setSize(0.15f);
+    thrustEmitter.setColor(ofColor(255, 150, 50, 255));  // Orange/yellow exhaust
+    thrustEmitter.setRate(100.0f);  // 100 particles per second
+    thrustEmitter.setParticleRadius(0.3f);
+    thrustEmitter.setGravity(glm::vec3(0, 0, 0));  // No gravity for thrust particles
 }
 
 void Lander::initialize(glm::vec3 startPosition) {
@@ -69,6 +81,16 @@ void Lander::update(float dt, bool moveForward, bool moveBack, bool moveLeft, bo
     }
     if (thrustUp) {
         velocity += up * verticalForceMagnitude;
+        
+        // Start thrust particle emitter
+        if (!thrustEmitter.isEmitting()) {
+            thrustEmitter.start();
+        }
+    } else {
+        // Stop thrust particle emitter when not thrusting
+        if (thrustEmitter.isEmitting()) {
+            thrustEmitter.stop();
+        }
     }
     
     // Apply rotation
@@ -88,4 +110,43 @@ void Lander::update(float dt, bool moveForward, bool moveBack, bool moveLeft, bo
     
     // Integrate position
     position += velocity * dt;
+}
+
+void Lander::updateParticles(float dt) {
+    // Update emitter position to follow lander
+    thrustEmitter.setPosition(position);
+    
+    // Update particle system
+    thrustEmitter.update(dt);
+}
+
+void Lander::drawParticles() {
+    thrustEmitter.draw();
+}
+
+void Lander::triggerExplosion() {
+    // Stop thrust emitter if running
+    thrustEmitter.stop();
+    
+    // Configure for explosion
+    thrustEmitter.setEmitterType("radial");
+    thrustEmitter.setVelocityRange(5.0f, 15.0f);
+    thrustEmitter.setLifespan(0.5f, 1.5f);
+    thrustEmitter.setSize(0.2f);
+    thrustEmitter.setColor(ofColor(255, 100, 0, 255));  // Bright orange/red
+    thrustEmitter.setGravity(glm::vec3(0, MOON_GRAVITY, 0));  // Apply gravity to explosion
+    thrustEmitter.setPosition(position);
+    
+    // Emit burst of particles
+    thrustEmitter.burst(200);  // 200 particles for explosion
+    
+    // Reconfigure back to thrust mode for next time
+    thrustEmitter.setEmitterType("cone");
+    thrustEmitter.setDirection(glm::vec3(0, -1, 0));
+    thrustEmitter.setConeAngle(25.0f);
+    thrustEmitter.setVelocityRange(3.0f, 6.0f);
+    thrustEmitter.setLifespan(0.3f, 0.8f);
+    thrustEmitter.setSize(0.15f);
+    thrustEmitter.setColor(ofColor(255, 150, 50, 255));
+    thrustEmitter.setGravity(glm::vec3(0, 0, 0));
 }

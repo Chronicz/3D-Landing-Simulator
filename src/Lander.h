@@ -2,6 +2,7 @@
 
 #include "ofMain.h"
 #include <glm/glm.hpp>
+#include "ParticleEmitter.h"
 
 class Lander {
 public:
@@ -20,6 +21,9 @@ public:
     bool bExtremeForces;   // Use 100x forces for testing
     bool bDisableCollisionClamping;  // Disable collision velocity clamping for testing
     
+    // Particle emitter for thrust and explosion effects
+    ParticleEmitter thrustEmitter;
+    
     // Moon physics constants
     static constexpr float MOON_GRAVITY = -1.62f;  // m/s² downward
     
@@ -34,5 +38,10 @@ public:
     
     // Reset physics state
     void reset();
+    
+    // Particle system methods
+    void updateParticles(float dt);
+    void drawParticles();
+    void triggerExplosion();
 };
 

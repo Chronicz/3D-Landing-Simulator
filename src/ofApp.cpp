@@ -568,6 +568,14 @@ void ofApp::update() {
 				// Calculate how much to push the lander up
 				float pushUpAmount = highestTerrainY - landerBottomY;
 				
+				// Check landing velocity for crash detection
+				float landingSpeed = glm::length(landerPhysics.velocity);
+				if (landingSpeed > 5.0f) {
+					// CRASH! Trigger explosion
+					landerPhysics.triggerExplosion();
+					cout << "CRASH! Landing speed: " << landingSpeed << " m/s" << endl;
+				}
+				
 				// Adjust lander position upward
 				landerPhysics.position.y += pushUpAmount;
 				
@@ -585,6 +593,9 @@ void ofApp::update() {
 				landerPhysics.velocity.y = 0.0f;
 			}
 		}
+		
+		// Update particle system
+		landerPhysics.updateParticles(dt);
 	}
 	else {
 		// Clear collision results when not in physics mode
@@ -877,6 +888,11 @@ void ofApp::draw() {
 		ofPopMatrix();
 		
 		ofSetLineWidth(1.0);
+	}
+	
+	// Draw particle effects (thrust and explosions)
+	if (bLanderLoaded && bPhysicsEnabled) {
+		landerPhysics.drawParticles();
 	}
 
 	ofPopMatrix();

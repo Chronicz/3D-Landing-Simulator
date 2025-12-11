@@ -22,6 +22,9 @@
 		<ClCompile Include="src\Lander.cpp">
 			<Filter>src</Filter>
 		</ClCompile>
+		<ClCompile Include="src\ParticleEmitter.cpp">
+			<Filter>src</Filter>
+		</ClCompile>
 		<ClCompile Include="src\octree-readme.txt">
 			<Filter>src</Filter>
 		</ClCompile>
@@ -132,6 +135,12 @@
 			<Filter>src</Filter>
 		</ClInclude>
 		<ClInclude Include="src\Lander.h">
+			<Filter>src</Filter>
+		</ClInclude>
+		<ClInclude Include="src\Particle.h">
+			<Filter>src</Filter>
+		</ClInclude>
+		<ClInclude Include="src\ParticleEmitter.h">
 			<Filter>src</Filter>
 		</ClInclude>
 		<ClInclude Include="..\..\..\addons\ofxAssimpModelLoader\src\ofxAssimpAnimation.h">
